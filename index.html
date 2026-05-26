@@ -731,7 +731,7 @@ function persist() {
 }
 function dateEv(d) { return allEvents[d || currentDate] || {}; }
 
-// Returns array of valid bookings for a venue on a date
+// Returns array of valid bookings stored on a specific date key (used for editing/saving)
 function getBookings(venueId, dateStr) {
   const day = allEvents[dateStr || currentDate] || {};
   const v   = day[venueId];
@@ -740,7 +740,27 @@ function getBookings(venueId, dateStr) {
   if (v.desc && v.desc.trim()) return [Object.assign({note:''}, v)]; // legacy
   return [];
 }
-function hasBooking(venueId, dateStr) { return getBookings(venueId, dateStr).length > 0; }
+
+// Returns all valid bookings for a venue that cover a given date (respects fromDate–toDate range)
+function getBookingsOnDate(venueId, dateStr) {
+  const ds = dateStr || currentDate;
+  const results = [];
+  Object.keys(allEvents).forEach(storedDate => {
+    const day = allEvents[storedDate];
+    const v   = day[venueId];
+    if (!v) return;
+    const arr = Array.isArray(v)
+      ? v.filter(b => b && b.desc && b.desc.trim())
+      : (v.desc && v.desc.trim() ? [Object.assign({note:''}, v)] : []);
+    arr.forEach(b => {
+      const from = b.fromDate || storedDate;
+      const to   = b.toDate   || storedDate;
+      if (ds >= from && ds <= to) results.push(b);
+    });
+  });
+  return results;
+}
+function hasBooking(venueId, dateStr) { return getBookingsOnDate(venueId, dateStr).length > 0; }
 
 function setBookings(venueId, arr) {
   if (!allEvents[currentDate]) allEvents[currentDate] = {};
@@ -795,10 +815,13 @@ function renderTables() {
     const bPct    = totalV ? Math.round(bookedV / totalV * 100) : 0;
 
     const rows = b.venues.map(v => {
-      const bks = getBookings(v.id, currentDate);
+      const bks = getBookingsOnDate(v.id, currentDate);
       const has = bks.length > 0;
       const first = has ? bks[0] : null;
       const ts  = (first && first.start && first.end) ? `${fmt(first.start)} – ${fmt(first.end)}` : '';
+      const dr  = (first && first.fromDate && first.toDate && first.fromDate !== first.toDate)
+                  ? `<div style="font-size:10.5px;color:var(--muted);margin-top:2px;">📅 ${first.fromDate} → ${first.toDate}</div>`
+                  : (first && first.fromDate ? `<div style="font-size:10.5px;color:var(--muted);margin-top:2px;">📅 ${first.fromDate}</div>` : '');
       const sl  = serial++;
       const extraBadge = bks.length > 1 ? `<span class="multi-badge">+${bks.length-1} more</span>` : '';
       const descHtml = has
@@ -810,7 +833,7 @@ function renderTables() {
         <td class="vnm"><span class="sd ${has?'sd-on':'sd-off'}"></span>${esc(v.name)}</td>
         <td class="${has?'edesc':'eempty'}">${descHtml}</td>
         <td>${has ? deptBadge(first.dept) : '<span class="badge bg-emp">—</span>'}</td>
-        <td class="${has?'ton':'toff'}">${ts||'—'}</td>
+        <td class="${has?'ton':'toff'}">${ts||'—'}${dr}</td>
         <td><span class="vpct ${has?'vpct-on':'vpct-off'}">${has?(bks.length>1?`${bks.length} bookings`:'Booked'):'Free'}</span></td>
         <td>
           <div class="act-cell">
@@ -937,6 +960,16 @@ function bookingCardHtml(bk, idx) {
       <label>Note</label>
       <input type="text" class="bc-note" placeholder="Additional note (optional)…" value="${esc(bk.note||'')}"/>
     </div>
+    <div class="bc-row" style="margin-bottom:0;">
+      <div class="bc-field">
+        <label>From Date</label>
+        <input type="date" class="bc-fd" value="${esc(bk.fromDate||currentDate)}"/>
+      </div>
+      <div class="bc-field">
+        <label>To Date</label>
+        <input type="date" class="bc-td" value="${esc(bk.toDate||currentDate)}"/>
+      </div>
+    </div>
     <div class="bc-row">
       <div class="bc-field">
         <label>Department</label>
@@ -966,8 +999,8 @@ let editBookings = [];
 
 function openEditModal(id, name) {
   editId = id;
-  editBookings = JSON.parse(JSON.stringify(getBookings(id, currentDate)));
-  if (editBookings.length === 0) editBookings = [{desc:'',dept:'',start:'',end:'',note:''}];
+  editBookings = JSON.parse(JSON.stringify(getBookingsOnDate(id, currentDate)));
+  if (editBookings.length === 0) editBookings = [{desc:'',dept:'',start:'',end:'',note:'',fromDate:currentDate,toDate:currentDate}];
   document.getElementById('editVenueLbl').textContent = `${name}  ·  ${dateLabel(currentDate)}`;
   renderBookingsList();
   document.getElementById('editOv').classList.add('open');
@@ -981,7 +1014,7 @@ function renderBookingsList() {
 }
 
 function addBookingCard() {
-  editBookings.push({desc:'',dept:'',start:'',end:'',note:''});
+  editBookings.push({desc:'',dept:'',start:'',end:'',note:'',fromDate:currentDate,toDate:currentDate});
   renderBookingsList();
   const cards = document.querySelectorAll('.booking-card');
   if (cards.length) cards[cards.length-1].scrollIntoView({behavior:'smooth',block:'nearest'});
@@ -1010,6 +1043,8 @@ function collectBookings() {
       dept,
       start: card.querySelector('.bc-ts').value,
       end:   card.querySelector('.bc-te').value,
+      fromDate: card.querySelector('.bc-fd').value,
+      toDate:   card.querySelector('.bc-td').value,
     };
   }).filter(b => b.desc);
 }
@@ -1215,7 +1250,7 @@ function renderVenueChart() {
       // Count days this venue had an event in the month
       let bookedDays = 0;
       monthDates.forEach(dt => {
-        if (getBookings(v.id, dt).length > 0) bookedDays++;
+        if (getBookingsOnDate(v.id, dt).length > 0) bookedDays++;
       });
       const pct  = Math.round((bookedDays / totalDays) * 100);
       labels.push(v.name);
@@ -1577,18 +1612,19 @@ function renderYearlyView() {
   const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const allV   = allVenues();
 
-  // Count bookings per venue per month
-  // venue → [12 month counts]
+  // Count days per venue per month using date-range-aware check
   const matrix = {};
   allV.forEach(v => { matrix[v.id] = Array(12).fill(0); });
 
-  Object.keys(allEvents).forEach(ds => {
-    if (!ds.startsWith(String(yrViewYear))) return;
-    const mo = parseInt(ds.slice(5,7)) - 1;
-    allV.forEach(v => {
-      if (getBookings(v.id, ds).length > 0) matrix[v.id][mo]++;
-    });
-  });
+  for (let mo = 0; mo < 12; mo++) {
+    const daysInMo = new Date(yrViewYear, mo + 1, 0).getDate();
+    for (let day = 1; day <= daysInMo; day++) {
+      const ds = `${yrViewYear}-${String(mo+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      allV.forEach(v => {
+        if (hasBooking(v.id, ds)) matrix[v.id][mo]++;
+      });
+    }
+  }
 
   // Build table header
   let hdr = `<th>Venue</th>` + MONTHS.map(m => `<th>${m}</th>`).join('') + `<th>Total</th>`;
@@ -1597,8 +1633,8 @@ function renderYearlyView() {
   const rows = allVenues().map(v => {
     const counts = matrix[v.id];
     const total  = counts.reduce((a,b)=>a+b,0);
-    const maxPossible = 12; // max 1 booking-day per month, 12 months
-    const pct = maxPossible > 0 ? Math.round(total / maxPossible * 100) : 0;
+    const daysInYear = (yrViewYear % 4 === 0 && (yrViewYear % 100 !== 0 || yrViewYear % 400 === 0)) ? 366 : 365;
+    const pct = Math.round(total / daysInYear * 100);
     const cells  = counts.map(c => `<td class="${heatClass(c)}">${c||'—'}</td>`).join('');
     return `<tr><td>${esc(v.name)}</td>${cells}<td style="background:var(--teal3);color:var(--teal2);font-weight:700;">${total} <span style="font-size:10px;font-weight:500;color:var(--muted);">(${pct}%)</span></td></tr>`;
   }).join('');
@@ -1607,7 +1643,8 @@ function renderYearlyView() {
   const colTotals = Array(12).fill(0);
   allV.forEach(v => matrix[v.id].forEach((c,i) => { colTotals[i] += c; }));
   const grandTotal = colTotals.reduce((a,b)=>a+b,0);
-  const grandMax   = allV.length * 12;
+  const daysInYearTotal = (yrViewYear % 4 === 0 && (yrViewYear % 100 !== 0 || yrViewYear % 400 === 0)) ? 366 : 365;
+  const grandMax   = allV.length * daysInYearTotal;
   const grandPct   = grandMax > 0 ? Math.round(grandTotal / grandMax * 100) : 0;
   const totalRow   = colTotals.map(c => `<td>${c||'—'}</td>`).join('');
 
