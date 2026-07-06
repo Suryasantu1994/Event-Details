@@ -465,6 +465,27 @@ footer span{color:var(--teal);font-weight:600;}
   </div>
 </div>
 
+<!-- DEPARTMENT CHART PANEL -->
+<div class="chart-panel">
+  <div class="chart-toggle" id="deptChartToggle" onclick="toggleDeptChart()">
+    <div class="chart-toggle-left">
+      <div class="chart-toggle-icon">🏢</div>
+      <div>
+        <div class="chart-toggle-title">Department-wise Total Venue Bookings</div>
+        <div class="chart-toggle-sub" id="deptChartSubtitle">Total bookings and share by department</div>
+      </div>
+    </div>
+    <span class="chart-toggle-arrow open" id="deptChartArrow">▼</span>
+  </div>
+  <div class="chart-body open" id="deptChartBody">
+    <div class="chart-body-inner">
+      <div class="chart-wrap">
+        <canvas id="deptChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- BOOKING CALENDAR -->
 <div class="cal-panel">
   <div class="cal-toggle" onclick="toggleCal()">
@@ -801,6 +822,7 @@ function render() {
   renderTables();
   renderDash();
   renderVenueChart();
+  renderDeptChart();
   renderCalendar();
   renderYearlyView();
   applyFilters();
@@ -1361,6 +1383,125 @@ function renderVenueChart() {
   });
 }
 
+/* ── DEPARTMENT-WISE BOOKINGS CHART ──────────────────────────────────────── */
+let deptChartInstance = null;
+
+function toggleDeptChart() {
+  const body  = document.getElementById('deptChartBody');
+  const arrow = document.getElementById('deptChartArrow');
+  body.classList.toggle('open');
+  arrow.classList.toggle('open');
+}
+
+function getDeptTotals() {
+  const totals = {};
+  Object.keys(allEvents).forEach(storedDate => {
+    const day = allEvents[storedDate];
+    Object.keys(day).forEach(vid => {
+      const v = day[vid];
+      const arr = Array.isArray(v)
+        ? v.filter(b => b && b.desc && b.desc.trim())
+        : (v && v.desc && v.desc.trim() ? [v] : []);
+      arr.forEach(b => {
+        const d = (b.dept && b.dept.trim()) ? b.dept.trim() : 'Unspecified';
+        totals[d] = (totals[d] || 0) + 1;
+      });
+    });
+  });
+  return totals;
+}
+
+function renderDeptChart() {
+  const totals     = getDeptTotals();
+  const entries     = Object.entries(totals).sort((a, b) => b[1] - a[1]);
+  const grandTotal  = entries.reduce((s, [, c]) => s + c, 0);
+
+  const sub = document.getElementById('deptChartSubtitle');
+  if (sub) {
+    sub.textContent = grandTotal
+      ? `${grandTotal} total booking${grandTotal === 1 ? '' : 's'} across ${entries.length} department${entries.length === 1 ? '' : 's'}`
+      : 'No bookings recorded yet';
+  }
+
+  const labels = entries.map(([d]) => d);
+  const counts = entries.map(([, c]) => c);
+  const pcts   = counts.map(c => grandTotal ? Math.round((c / grandTotal) * 1000) / 10 : 0);
+
+  const palette = ['#004D40','#00956D','#00C896','#C8A96E','#4A90A4','#B85C5C','#8E6FB8','#5D8C67','#D4A03C','#7A9EA8'];
+  const colors  = labels.map((_, i) => palette[i % palette.length]);
+
+  const canvas = document.getElementById('deptChart');
+  if (!canvas) return;
+  const rowH = 36;
+  const h = Math.max(labels.length, 1) * rowH + 50;
+  canvas.style.height = h + 'px';
+  canvas.height        = h;
+
+  if (deptChartInstance) { deptChartInstance.destroy(); deptChartInstance = null; }
+
+  Chart.register(ChartDataLabels);
+  deptChartInstance = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels: labels.length ? labels : ['No data'],
+      datasets: [{
+        label: 'Bookings',
+        data: counts.length ? counts : [0],
+        backgroundColor: colors.length ? colors : ['rgba(216,228,226,0.5)'],
+        borderColor: 'rgba(0,77,64,0.25)',
+        borderWidth: 1,
+        borderRadius: 4,
+        barPercentage: 0.68,
+        categoryPercentage: 0.85,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label(ctx) {
+              const idx = ctx.dataIndex;
+              if (!counts[idx]) return ' No bookings';
+              return ` ${counts[idx]} booking${counts[idx] === 1 ? '' : 's'}  ·  ${pcts[idx]}%`;
+            }
+          },
+          backgroundColor: 'rgba(0,40,34,0.92)',
+          titleFont: { family:"'DM Sans', sans-serif", size:12, weight:'600' },
+          bodyFont:  { family:"'DM Sans', sans-serif", size:12 },
+          padding: 11,
+          cornerRadius: 8,
+        },
+        datalabels: {
+          display: true,
+          anchor: 'end',
+          align: 'end',
+          clamp: true,
+          color: '#004D40',
+          font: { family:"'DM Sans', sans-serif", size:11, weight:'700' },
+          formatter: (value, ctx) => value > 0 ? `${value} (${pcts[ctx.dataIndex]}%)` : '',
+        }
+      },
+      scales: {
+        x: {
+          beginAtZero: true,
+          ticks: { precision:0, font:{family:"'DM Sans',sans-serif",size:11}, color:'#7A9490' },
+          grid: { color:'rgba(216,228,226,0.5)' },
+          border: { display:false }
+        },
+        y: {
+          ticks: { font:{family:"'DM Sans',sans-serif",size:11.5,weight:'500'}, color:'#1A2E2B' },
+          grid: { display:false },
+          border: { display:false }
+        }
+      }
+    }
+  });
+}
+
 /* ── SHARE ─────────────────────────────────────────────────────────────────── */
 let shareImageDataUrl = null;
 const shareBuildingName = 'GITAM Hospitality – All Buildings';
@@ -1589,7 +1730,7 @@ function calSelectDate(ds) {
   currentDate = ds;
   calViewDate = ds;
   document.getElementById('datePicker').value = ds;
-  renderTables(); renderDash(); renderVenueChart(); renderCalendar(); renderYearlyView(); applyFilters();
+  renderTables(); renderDash(); renderVenueChart(); renderDeptChart(); renderCalendar(); renderYearlyView(); applyFilters();
 }
 
 /* ── YEARLY VIEW ──────────────────────────────────────────────────────────── */
