@@ -186,6 +186,20 @@ td.sl{color:var(--muted);font-size:12px;font-weight:600;text-align:center;white-
 .btn-danger{background:#FEECEC;color:var(--red);border:1.5px solid #FBBDB9;}
 .btn-danger:hover{background:var(--red);color:#fff;}
 
+/* dept detail modal */
+#deptDetailOv .modal{max-width:640px;}
+.dept-detail-list{display:flex;flex-direction:column;gap:8px;max-height:440px;overflow-y:auto;padding-right:4px;}
+.dept-detail-list::-webkit-scrollbar{width:4px;}
+.dept-detail-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
+.ddi-card{background:var(--light);border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;}
+.ddi-top{display:flex;align-items:center;gap:8px;margin-bottom:4px;}
+.ddi-date{font-size:11px;font-weight:700;color:var(--teal);background:var(--teal3);padding:2px 8px;border-radius:10px;}
+.ddi-venue{font-size:12px;font-weight:600;color:var(--text);}
+.ddi-desc{font-size:13px;color:var(--text);font-weight:500;}
+.ddi-note{font-size:11.5px;color:var(--muted);margin-top:3px;font-style:italic;}
+.ddi-time{font-size:11px;color:var(--muted);margin-top:2px;}
+.dept-detail-empty{text-align:center;padding:30px;color:var(--muted);font-style:italic;}
+
 /* custom dept note */
 #customDeptWrap{display:none;margin-top:8px;}
 #customDeptWrap input{border-color:var(--gold);}
@@ -1497,6 +1511,16 @@ function renderDeptChart() {
           grid: { display:false },
           border: { display:false }
         }
+      },
+      onClick(evt, elements) {
+        if (elements.length > 0) {
+          const idx  = elements[0].index;
+          const dept = labels[idx];
+          if (dept && dept !== 'No data') openDeptDetail(dept);
+        }
+      },
+      onHover(evt, elements) {
+        evt.native.target.style.cursor = elements.length ? 'pointer' : 'default';
       }
     }
   });
@@ -1807,10 +1831,61 @@ document.getElementById('datePicker').addEventListener('change', function() {
 });
 
 /* ── OVERLAY CLICK CLOSE ─────────────────────────────────────────────────── */
-['editOv','addVenueOv','shareOv','manageOv'].forEach(id => {
+/* ── DEPT DETAIL MODAL ───────────────────────────────────────────────────── */
+function openDeptDetail(deptName) {
+  document.getElementById('deptDetailTitle').textContent = deptName;
+  const list = document.getElementById('deptDetailList');
+
+  // Gather all bookings for this dept
+  const items = [];
+  const allV  = allVenues();
+  const venueMap = {};
+  allV.forEach(v => { venueMap[v.id] = v.name; });
+
+  Object.keys(allEvents).sort().forEach(storedDate => {
+    const day = allEvents[storedDate];
+    Object.keys(day).forEach(vid => {
+      const v   = day[vid];
+      const arr = Array.isArray(v)
+        ? v.filter(b => b && b.desc && b.desc.trim())
+        : (v && v.desc && v.desc.trim() ? [v] : []);
+      arr.forEach(b => {
+        const d = (b.dept && b.dept.trim()) ? b.dept.trim() : 'Unspecified';
+        if (d === deptName) {
+          items.push({ date: storedDate, venue: venueMap[vid] || `Venue #${vid}`, desc: b.desc, note: b.note||'', start: b.start||'', end: b.end||'' });
+        }
+      });
+    });
+  });
+
+  if (!items.length) {
+    list.innerHTML = `<div class="dept-detail-empty">No bookings found for this department.</div>`;
+  } else {
+    list.innerHTML = items.map(it => {
+      const dateLabel = new Date(it.date + 'T00:00:00').toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'});
+      const timeStr   = (it.start && it.end) ? `🕐 ${it.start} – ${it.end}` : it.start ? `🕐 From ${it.start}` : '';
+      return `
+        <div class="ddi-card">
+          <div class="ddi-top">
+            <span class="ddi-date">${dateLabel}</span>
+            <span class="ddi-venue">🏛 ${esc(it.venue)}</span>
+          </div>
+          <div class="ddi-desc">${esc(it.desc)}</div>
+          ${timeStr ? `<div class="ddi-time">${timeStr}</div>` : ''}
+          ${it.note ? `<div class="ddi-note">📝 ${esc(it.note)}</div>` : ''}
+        </div>`;
+    }).join('');
+  }
+
+  document.getElementById('deptDetailCount').textContent = items.length + ' booking' + (items.length === 1 ? '' : 's');
+  document.getElementById('deptDetailOv').classList.add('open');
+}
+function closeDeptDetailModal() { document.getElementById('deptDetailOv').classList.remove('open'); }
+
+['editOv','addVenueOv','shareOv','manageOv','deptDetailOv'].forEach(id => {
   const el = document.getElementById(id);
   if (el) el.addEventListener('click', e => {
-    if (e.target === e.currentTarget) { closeEditModal(); closeAddVenueModal(); closeShareModal(); closeManageModal(); }
+    if (e.target === e.currentTarget) { closeEditModal(); closeAddVenueModal(); closeShareModal(); closeManageModal(); closeDeptDetailModal(); }
   });
 });
 
@@ -1820,5 +1895,25 @@ load().then(() => {
   render();
 });
 </script>
+
+<!-- DEPT DETAIL MODAL -->
+<div class="ov" id="deptDetailOv">
+  <div class="modal" style="max-width:640px;">
+    <div class="mhdr">
+      <div>
+        <h3>🏢 <span id="deptDetailTitle"></span></h3>
+        <small id="deptDetailCount"></small>
+      </div>
+      <button class="mclose" onclick="closeDeptDetailModal()">✕</button>
+    </div>
+    <div class="mbody">
+      <div class="dept-detail-list" id="deptDetailList"></div>
+    </div>
+    <div class="mfoot">
+      <button class="btn btn-ghost" onclick="closeDeptDetailModal()">Close</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
