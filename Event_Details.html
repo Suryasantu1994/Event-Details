@@ -1,0 +1,1919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>GITAM Event Index</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey:            "AIzaSyBhFjasUZWlBI5vXy6yMKdBrIJdaRO3f2s",
+    authDomain:        "gitam-events-17cda.firebaseapp.com",
+    databaseURL:       "https://gitam-events-17cda-default-rtdb.firebaseio.com",
+    projectId:         "gitam-events-17cda",
+    storageBucket:     "gitam-events-17cda.firebasestorage.app",
+    messagingSenderId: "637149782118",
+    appId:             "1:637149782118:web:8f9f3d0bc90c874cc34da7"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+  const FB_ROOT = 'gitamEventIndex';
+</script>
+<style>
+:root{
+  --teal:#00695C;--teal2:#004D40;--teal3:#E0F2F1;
+  --gold:#C8972A;--gold2:#F0B429;--goldb:#FFF8E7;
+  --light:#F4F7F6;--white:#FFFFFF;--text:#1A2E2B;
+  --muted:#7A9490;--border:#D8E4E2;--green:#00C896;--red:#E53935;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--light);color:var(--text);min-height:100vh;}
+
+/* ── HEADER ── */
+header{background:linear-gradient(135deg,var(--teal2) 0%,var(--teal) 100%);padding:16px 28px;position:sticky;top:0;z-index:300;box-shadow:0 4px 20px rgba(0,77,64,.4);}
+.hdr-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+.brand{display:flex;align-items:center;gap:13px;}
+
+/* GITAM SVG Logo */
+.gitam-logo{width:52px;height:52px;flex-shrink:0;}
+
+.brand-txt h1{font-family:'Playfair Display',serif;font-size:19px;color:#fff;font-weight:700;line-height:1.2;}
+.brand-txt p{font-size:11.5px;color:rgba(255,255,255,.6);font-weight:300;margin-top:1px;}
+.hdr-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+
+.date-wrap{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:20px;padding:6px 14px;backdrop-filter:blur(8px);}
+.date-wrap label{font-size:10.5px;color:rgba(255,255,255,.7);font-weight:600;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;}
+#datePicker{background:transparent;border:none;outline:none;color:#fff;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;width:130px;}
+#datePicker::-webkit-calendar-picker-indicator{filter:invert(1);opacity:.7;cursor:pointer;}
+
+.hdr-btns{display:flex;gap:8px;}
+.hdr-btn{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:20px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);color:#fff;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.hdr-btn:hover{background:rgba(255,255,255,.22);}
+.hdr-btn.gold-btn{background:var(--gold2);color:var(--teal2);border-color:var(--gold2);}
+.hdr-btn.gold-btn:hover{background:#d4a020;}
+
+/* ── DASHBOARD ── */
+.dashboard{background:var(--white);border-bottom:1px solid var(--border);padding:18px 28px;display:flex;gap:14px;flex-wrap:wrap;align-items:stretch;}
+.dash-kpi{display:flex;align-items:center;gap:12px;background:var(--light);border-radius:12px;padding:13px 16px;flex:1;min-width:120px;border:1px solid var(--border);}
+.kpi-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
+.ki-teal{background:var(--teal3);color:var(--teal);}
+.ki-grn{background:#E8F8F3;color:#00A87A;}
+.ki-red{background:#FEECEC;color:var(--red);}
+.ki-gold{background:var(--goldb);color:var(--gold);}
+.kpi-val{font-family:'Playfair Display',serif;font-size:25px;font-weight:700;color:var(--text);line-height:1;}
+.kpi-lbl{font-size:10px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.5px;margin-top:3px;}
+.dash-div{width:1px;background:var(--border);}
+
+.dash-occ{flex:2;min-width:250px;background:var(--light);border-radius:12px;padding:13px 18px;border:1px solid var(--border);}
+.occ-title{font-size:10.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:11px;}
+.occ-row{display:flex;align-items:center;gap:9px;margin-bottom:8px;}
+.occ-row:last-child{margin-bottom:0;}
+.occ-info{width:160px;flex-shrink:0;}
+.occ-name{font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.occ-sub{font-size:10px;color:var(--muted);margin-top:1px;}
+.occ-bar-bg{flex:1;height:9px;background:var(--border);border-radius:6px;overflow:hidden;}
+.occ-bar{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--teal),var(--gold2));transition:width .65s cubic-bezier(.4,0,.2,1);}
+.occ-pct{font-size:12px;font-weight:700;color:var(--teal);width:36px;text-align:right;flex-shrink:0;}
+
+/* ── CONTROLS ── */
+.controls{padding:12px 28px;background:var(--white);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.srch-wrap{position:relative;flex:1;min-width:170px;max-width:280px;}
+.srch-wrap input{width:100%;padding:8px 12px 8px 34px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13.5px;color:var(--text);background:var(--light);outline:none;transition:border-color .2s,box-shadow .2s;}
+.srch-wrap input:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(0,105,92,.12);}
+.srch-ico{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px;}
+.fbtns{display:flex;gap:6px;flex-wrap:wrap;}
+.fb{padding:7px 14px;border-radius:20px;border:1.5px solid var(--border);font-family:'DM Sans',sans-serif;font-size:12.5px;font-weight:500;cursor:pointer;background:var(--white);color:var(--muted);transition:all .15s;}
+.fb:hover{border-color:var(--teal);color:var(--teal);}
+.fb.active{background:var(--teal);color:#fff;border-color:var(--teal);}
+
+/* ── MAIN ── */
+main{padding:22px 28px;max-width:1140px;margin:0 auto;}
+.section{margin-bottom:30px;}
+.sec-hdr{display:flex;align-items:center;gap:10px;margin-bottom:13px;padding-bottom:10px;border-bottom:2px solid var(--teal);}
+.sec-ico{width:34px;height:34px;background:var(--teal);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;}
+.sec-title{font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:var(--teal2);}
+.sec-right{margin-left:auto;display:flex;align-items:center;gap:10px;}
+.sec-pct-badge{background:var(--teal3);color:var(--teal);border-radius:20px;padding:3px 12px;font-size:11.5px;font-weight:700;}
+.sec-count{background:var(--teal);color:#fff;border-radius:12px;padding:3px 11px;font-size:11.5px;font-weight:600;}
+.add-venue-btn{display:flex;align-items:center;gap:5px;padding:5px 13px;border-radius:7px;border:1.5px dashed var(--teal);background:var(--teal3);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;color:var(--teal);cursor:pointer;transition:all .15s;}
+.add-venue-btn:hover{background:var(--teal);color:#fff;border-style:solid;}
+
+/* ── TABLE ── */
+.tbl-wrap{overflow-x:auto;border-radius:12px;box-shadow:0 2px 12px rgba(0,69,56,.08);}
+table{width:100%;border-collapse:collapse;background:var(--white);}
+thead th{background:var(--teal2);color:#fff;padding:10px 13px;font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;text-align:left;}
+thead th:first-child{border-radius:12px 0 0 0;width:44px;}
+thead th:last-child{border-radius:0 12px 0 0;}
+tbody tr{border-bottom:1px solid var(--border);transition:background .12s;}
+tbody tr:last-child{border-bottom:none;}
+tbody tr:hover{background:#F0FAF7;}
+tbody tr.has-ev{background:#E8F5F0;}
+tbody tr.has-ev:hover{background:#D4EFE8;}
+tbody tr.rh{display:none;}
+td{padding:11px 13px;font-size:13.5px;vertical-align:middle;}
+td.sl{color:var(--muted);font-size:12px;font-weight:600;text-align:center;white-space:nowrap;}
+.vnm{font-weight:600;}
+.edesc{color:var(--teal2);font-weight:500;}
+.eempty{color:var(--muted);font-style:italic;font-size:13px;}
+.sd{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;}
+.sd-on{background:var(--green);box-shadow:0 0 0 3px rgba(0,200,150,.25);}
+.sd-off{background:var(--border);}
+.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.3px;}
+.bg-gen{background:rgba(0,105,92,.12);color:var(--teal2);}
+.bg-stu{background:rgba(200,151,42,.15);color:#7A5A00;}
+.bg-cus{background:rgba(100,60,180,.12);color:#5A3A9A;}
+.bg-emp{background:var(--border);color:var(--muted);}
+.ton{white-space:nowrap;font-size:12.5px;font-weight:600;color:var(--teal);}
+.toff{color:var(--muted);font-size:12.5px;}
+
+/* venue % pill in table */
+.vpct{display:inline-block;min-width:40px;text-align:center;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700;}
+.vpct-on{background:rgba(0,200,150,.15);color:#00875A;}
+.vpct-off{background:var(--border);color:var(--muted);}
+
+.act-cell{display:flex;gap:6px;align-items:center;flex-wrap:nowrap;}
+.ebtn{display:inline-flex;align-items:center;gap:4px;padding:5px 11px;border-radius:7px;border:1.5px solid var(--border);background:var(--white);font-family:'DM Sans',sans-serif;font-size:11.5px;font-weight:600;color:var(--teal);cursor:pointer;transition:all .15s;white-space:nowrap;}
+.ebtn:hover{background:var(--teal);color:#fff;border-color:var(--teal);}
+.delbtn{display:inline-flex;align-items:center;gap:4px;padding:5px 9px;border-radius:7px;border:1.5px solid #FBBDB9;background:#FEECEC;font-family:'DM Sans',sans-serif;font-size:11.5px;font-weight:600;color:var(--red);cursor:pointer;transition:all .15s;white-space:nowrap;}
+.delbtn:hover{background:var(--red);color:#fff;border-color:var(--red);}
+.mgbtn{display:inline-flex;align-items:center;gap:5px;padding:5px 13px;border-radius:7px;border:1.5px solid var(--border);background:var(--white);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .15s;white-space:nowrap;}
+.mgbtn:hover{border-color:var(--gold);color:var(--gold);}
+
+/* manage venues modal */
+#manageOv .modal{max-width:520px;}
+.venue-list{display:flex;flex-direction:column;gap:8px;max-height:380px;overflow-y:auto;padding-right:4px;}
+.venue-list::-webkit-scrollbar{width:4px;}
+.venue-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
+.venue-row{display:flex;align-items:center;gap:8px;background:var(--light);border:1.5px solid var(--border);border-radius:9px;padding:8px 10px;transition:border-color .15s;}
+.venue-row:focus-within{border-color:var(--teal);}
+.venue-row-num{font-size:11.5px;font-weight:700;color:var(--muted);width:22px;text-align:center;flex-shrink:0;}
+.venue-row input{flex:1;border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:13.5px;color:var(--text);font-weight:500;outline:none;min-width:0;}
+.venue-row-del{background:none;border:none;color:#FBBDB9;cursor:pointer;font-size:16px;line-height:1;padding:2px 4px;border-radius:5px;transition:all .15s;flex-shrink:0;}
+.venue-row-del:hover{background:#FEECEC;color:var(--red);}
+.add-inline-btn{display:flex;align-items:center;gap:7px;padding:9px 14px;border:1.5px dashed var(--teal);border-radius:9px;background:var(--teal3);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:var(--teal);cursor:pointer;transition:all .15s;width:100%;}
+.add-inline-btn:hover{background:var(--teal);color:#fff;border-style:solid;}
+
+/* ── MODALS shared ── */
+.ov{display:none;position:fixed;inset:0;background:rgba(0,30,25,.52);z-index:500;backdrop-filter:blur(3px);align-items:center;justify-content:center;}
+.ov.open{display:flex;}
+.modal{background:var(--white);border-radius:16px;width:100%;max-width:490px;margin:16px;box-shadow:0 20px 60px rgba(0,60,50,.25);overflow:hidden;animation:su .22s ease;}
+@keyframes su{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.mhdr{background:linear-gradient(135deg,var(--teal2),var(--teal));padding:17px 22px;display:flex;align-items:flex-start;justify-content:space-between;}
+.mhdr h3{font-family:'Playfair Display',serif;font-size:16px;color:#fff;font-weight:600;}
+.mhdr small{font-size:11.5px;color:rgba(255,255,255,.65);display:block;margin-top:3px;}
+.mclose{background:rgba(255,255,255,.15);border:none;color:#fff;width:30px;height:30px;border-radius:50%;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s;flex-shrink:0;margin-left:12px;}
+.mclose:hover{background:rgba(255,255,255,.3);}
+.mbody{padding:20px;}
+.fg{margin-bottom:15px;}
+.fg label{display:block;font-size:11.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+.fg input,.fg select,.fg textarea{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);background:var(--light);outline:none;transition:border-color .18s,box-shadow .18s;}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(0,105,92,.12);}
+.fg textarea{resize:vertical;min-height:76px;}
+.tr2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.tr2 .sub-lbl{font-size:10.5px;color:var(--muted);display:block;margin-bottom:4px;}
+.mfoot{padding:13px 22px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:9px;}
+.btn{padding:9px 20px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13.5px;font-weight:600;cursor:pointer;border:none;transition:all .15s;}
+.btn-ghost{background:var(--light);color:var(--muted);border:1.5px solid var(--border);}
+.btn-ghost:hover{color:var(--text);}
+.btn-primary{background:var(--teal);color:#fff;}
+.btn-primary:hover{background:var(--teal2);}
+.btn-danger{background:#FEECEC;color:var(--red);border:1.5px solid #FBBDB9;}
+.btn-danger:hover{background:var(--red);color:#fff;}
+
+/* dept detail modal */
+#deptDetailOv .modal{max-width:640px;}
+.dept-detail-list{display:flex;flex-direction:column;gap:8px;max-height:440px;overflow-y:auto;padding-right:4px;}
+.dept-detail-list::-webkit-scrollbar{width:4px;}
+.dept-detail-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
+.ddi-card{background:var(--light);border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;}
+.ddi-top{display:flex;align-items:center;gap:8px;margin-bottom:4px;}
+.ddi-date{font-size:11px;font-weight:700;color:var(--teal);background:var(--teal3);padding:2px 8px;border-radius:10px;}
+.ddi-venue{font-size:12px;font-weight:600;color:var(--text);}
+.ddi-desc{font-size:13px;color:var(--text);font-weight:500;}
+.ddi-note{font-size:11.5px;color:var(--muted);margin-top:3px;font-style:italic;}
+.ddi-time{font-size:11px;color:var(--muted);margin-top:2px;}
+.dept-detail-empty{text-align:center;padding:30px;color:var(--muted);font-style:italic;}
+
+/* custom dept note */
+#customDeptWrap{display:none;margin-top:8px;}
+#customDeptWrap input{border-color:var(--gold);}
+
+.no-r{text-align:center;padding:40px;color:var(--muted);display:none;}
+
+/* ── PRINT ── */
+@media print{
+  /* Hide everything except header + main tables */
+  .dashboard,.chart-panel,.controls,footer,
+  .hdr-right,.hdr-btn,.hdr-btns,
+  .act-cell,.add-venue-btn,.sec-right .add-venue-btn,
+  .sec-count,.vpct{display:none!important;}
+
+  /* Reset page */
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  html,body{margin:0;padding:0;background:#fff;}
+
+  /* Header: slim, static, teal band */
+  header{
+    position:static!important;box-shadow:none!important;
+    background:linear-gradient(135deg,#004D40,#00695C)!important;
+    padding:12px 24px!important;
+  }
+  .brand-txt h1{font-size:16px!important;}
+  .brand-txt p{font-size:10px!important;}
+  .gitam-logo{width:44px!important;height:44px!important;}
+
+  /* Print date line just below header */
+  .print-date{
+    display:block!important;
+    font-size:10.5px;color:#555;
+    text-align:right;
+    padding:6px 24px 2px;
+    border-bottom:1px solid #D8E4E2;
+    margin-bottom:0;
+  }
+
+  /* Main content */
+  main{padding:16px 24px!important;max-width:100%!important;}
+  .section{margin-bottom:22px;page-break-inside:avoid;}
+
+  /* Section header */
+  .sec-hdr{border-bottom:2px solid #00695C!important;padding-bottom:7px!important;margin-bottom:10px!important;}
+  .sec-ico{background:#00695C!important;color:#fff!important;width:28px!important;height:28px!important;font-size:13px!important;}
+  .sec-title{font-size:14px!important;}
+  .sec-pct-badge{background:#E0F2F1!important;color:#00695C!important;font-size:10.5px!important;}
+
+  /* Table */
+  .tbl-wrap{box-shadow:none!important;border:1px solid #C8D8D6!important;border-radius:6px!important;overflow:hidden!important;}
+  table{font-size:10.5px!important;width:100%!important;}
+  thead th{background:#004D40!important;color:#fff!important;padding:8px 10px!important;font-size:9.5px!important;}
+  thead th:first-child{border-radius:0!important;}
+  thead th:last-child{border-radius:0!important;}
+  td{padding:8px 10px!important;}
+  tbody tr.has-ev{background:#E8F5F0!important;}
+  .badge{font-size:9px!important;padding:2px 6px!important;}
+  .bg-gen{background:rgba(0,105,92,.12)!important;color:#004D40!important;}
+  .bg-stu{background:rgba(200,151,42,.15)!important;color:#7A5A00!important;}
+  .bg-cus{background:rgba(100,60,180,.12)!important;color:#5A3A9A!important;}
+  .bg-emp{background:#D8E4E2!important;color:#7A9490!important;}
+  .sd-on{background:#00C896!important;}
+  .ton{color:#00695C!important;}
+}
+
+.print-date{display:none;font-size:10.5px;color:#555;text-align:right;padding:6px 24px 2px;}
+.chart-panel{background:var(--white);border-bottom:1px solid var(--border);padding:0 28px;}
+.chart-panel-inner{border-radius:0;}
+.chart-toggle{display:flex;align-items:center;justify-content:space-between;padding:14px 0;cursor:pointer;user-select:none;border-bottom:1px solid transparent;transition:border-color .2s;}
+.chart-toggle:hover .chart-toggle-title{color:var(--teal);}
+.chart-toggle-left{display:flex;align-items:center;gap:10px;}
+.chart-toggle-icon{width:30px;height:30px;background:var(--teal3);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.chart-toggle-title{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--teal2);transition:color .15s;}
+.chart-toggle-sub{font-size:11px;color:var(--muted);margin-top:1px;}
+.chart-toggle-arrow{font-size:13px;color:var(--muted);transition:transform .25s;}
+.chart-toggle-arrow.open{transform:rotate(180deg);}
+.chart-body{overflow:hidden;max-height:0;transition:max-height .35s cubic-bezier(.4,0,.2,1);}
+.chart-body.open{max-height:800px;}
+.chart-body-inner{padding-bottom:20px;}
+.chart-legend{display:flex;gap:18px;margin-bottom:14px;flex-wrap:wrap;}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:500;color:var(--text);}
+.legend-dot{width:12px;height:12px;border-radius:3px;flex-shrink:0;}
+.legend-booked{background:var(--teal);}
+.legend-avail{background:#D8E4E2;}
+.chart-wrap{position:relative;width:100%;}
+
+/* ── SHARE BUTTON ── */
+.share-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 13px;border-radius:7px;border:1.5px solid #25D366;background:#f0fdf4;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;color:#15803d;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.share-btn:hover{background:#25D366;color:#fff;border-color:#25D366;}
+
+/* ── SHARE MODAL ── */
+#shareOv .modal{max-width:420px;}
+.share-preview{width:100%;border-radius:10px;border:1px solid var(--border);display:block;margin-bottom:16px;background:var(--light);}
+.share-preview-wrap{position:relative;text-align:center;}
+.share-preview-label{font-size:11px;color:var(--muted);margin-bottom:8px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;}
+.share-actions{display:flex;flex-direction:column;gap:10px;}
+.wa-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:12px;border-radius:10px;background:#25D366;color:#fff;border:none;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:background .15s;}
+.wa-btn:hover{background:#1da851;}
+.wa-btn svg{flex-shrink:0;}
+.dl-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:10px;border-radius:10px;background:var(--light);color:var(--teal);border:1.5px solid var(--border);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;}
+.dl-btn:hover{background:var(--teal);color:#fff;border-color:var(--teal);}
+.share-spinner{display:none;flex-direction:column;align-items:center;gap:12px;padding:32px;color:var(--muted);}
+.spinner-ring{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--teal);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── MULTI-BOOKING MODAL ── */
+#editOv .modal{max-width:560px;}
+.booking-card{background:var(--light);border:1.5px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;position:relative;transition:border-color .15s;}
+.booking-card:focus-within{border-color:var(--teal);}
+.bc-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.bc-num{font-size:11px;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:.6px;background:var(--teal3);padding:2px 9px;border-radius:10px;}
+.bc-del{background:none;border:none;color:#FBBDB9;cursor:pointer;font-size:18px;line-height:1;padding:2px 5px;border-radius:5px;transition:all .15s;}
+.bc-del:hover{background:#FEECEC;color:var(--red);}
+.bc-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.bc-field{margin-bottom:10px;}
+.bc-field label{display:block;font-size:10.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;}
+.bc-field input,.bc-field select,.bc-field textarea{width:100%;padding:8px 11px;border:1.5px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:13.5px;color:var(--text);background:var(--white);outline:none;transition:border-color .18s;}
+.bc-field input:focus,.bc-field select:focus,.bc-field textarea:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(0,105,92,.10);}
+.bc-field textarea{resize:vertical;min-height:62px;}
+.bc-custom-wrap{display:none;margin-top:6px;}
+.bc-custom-wrap input{border-color:var(--gold);}
+.add-booking-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:10px;border:1.5px dashed var(--teal);border-radius:9px;background:var(--teal3);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:var(--teal);cursor:pointer;transition:all .15s;margin-top:4px;}
+.add-booking-btn:hover{background:var(--teal);color:#fff;border-style:solid;}
+.bookings-empty{text-align:center;padding:24px;color:var(--muted);font-size:13px;}
+.multi-badge{display:inline-block;background:rgba(0,105,92,.12);color:var(--teal);border-radius:12px;padding:1px 8px;font-size:10.5px;font-weight:700;margin-left:6px;vertical-align:middle;}
+
+/* ── CALENDAR PANEL ── */
+.cal-panel{background:var(--white);border-bottom:1px solid var(--border);padding:0 28px;}
+.cal-toggle{display:flex;align-items:center;justify-content:space-between;padding:14px 0;cursor:pointer;user-select:none;}
+.cal-toggle:hover .cal-toggle-title{color:var(--teal);}
+.cal-toggle-left{display:flex;align-items:center;gap:10px;}
+.cal-toggle-icon{width:30px;height:30px;background:#EFF6FF;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.cal-toggle-title{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--teal2);}
+.cal-toggle-arrow{font-size:13px;color:var(--muted);transition:transform .25s;}
+.cal-toggle-arrow.open{transform:rotate(180deg);}
+.cal-body{overflow:hidden;max-height:0;transition:max-height .35s cubic-bezier(.4,0,.2,1);}
+.cal-body.open{max-height:600px;}
+.cal-body-inner{padding-bottom:20px;}
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.cal-nav-btn{background:var(--light);border:1.5px solid var(--border);border-radius:8px;padding:6px 14px;cursor:pointer;font-size:15px;color:var(--text);transition:all .15s;}
+.cal-nav-btn:hover{background:var(--teal);color:#fff;border-color:var(--teal);}
+.cal-month-lbl{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--teal2);}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+.cal-day-hdr{text-align:center;font-size:10.5px;font-weight:700;color:var(--muted);padding:4px 0;text-transform:uppercase;letter-spacing:.5px;}
+.cal-cell{min-height:54px;background:var(--light);border-radius:8px;padding:5px 6px;cursor:pointer;border:1.5px solid transparent;transition:all .15s;position:relative;}
+.cal-cell:hover{border-color:var(--teal);background:var(--teal3);}
+.cal-cell.today{border-color:var(--gold2);background:var(--goldb);}
+.cal-cell.active-date{border-color:var(--teal);background:var(--teal3);}
+.cal-cell.other-month{opacity:.35;cursor:default;}
+.cal-cell.other-month:hover{border-color:transparent;background:var(--light);}
+.cal-day-num{font-size:12px;font-weight:600;color:var(--text);line-height:1;}
+.cal-cell.today .cal-day-num{color:var(--gold);}
+.cal-cell.active-date .cal-day-num{color:var(--teal);}
+.cal-dots{display:flex;flex-wrap:wrap;gap:2px;margin-top:4px;}
+.cal-dot{width:5px;height:5px;border-radius:50%;background:var(--teal);flex-shrink:0;}
+.cal-dot.dot-gold{background:var(--gold2);}
+.cal-count{font-size:9.5px;color:var(--teal);font-weight:700;margin-top:2px;}
+.cal-legend{display:flex;gap:16px;margin-top:12px;flex-wrap:wrap;}
+.cal-legend-item{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);}
+.cal-legend-dot{width:9px;height:9px;border-radius:50%;}
+
+/* ── YEARLY VIEW ── */
+.yr-panel{background:var(--white);border-bottom:1px solid var(--border);padding:0 28px;}
+.yr-toggle{display:flex;align-items:center;justify-content:space-between;padding:14px 0;cursor:pointer;user-select:none;}
+.yr-toggle:hover .yr-toggle-title{color:var(--teal);}
+.yr-toggle-left{display:flex;align-items:center;gap:10px;}
+.yr-toggle-icon{width:30px;height:30px;background:#FFF0E6;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.yr-toggle-title{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--teal2);}
+.yr-toggle-arrow{font-size:13px;color:var(--muted);transition:transform .25s;}
+.yr-toggle-arrow.open{transform:rotate(180deg);}
+.yr-body{overflow:hidden;max-height:0;transition:max-height .55s cubic-bezier(.4,0,.2,1);}
+.yr-body.open{max-height:1400px;}
+.yr-body-inner{padding-bottom:20px;overflow-x:auto;}
+.yr-nav{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+.yr-nav-btn{background:var(--light);border:1.5px solid var(--border);border-radius:8px;padding:5px 13px;cursor:pointer;font-size:15px;color:var(--text);transition:all .15s;}
+.yr-nav-btn:hover{background:var(--teal);color:#fff;border-color:var(--teal);}
+.yr-label{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--teal2);}
+.yr-table{border-collapse:collapse;width:100%;min-width:700px;font-size:12px;}
+.yr-table th{background:var(--teal2);color:#fff;padding:8px 10px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;text-align:center;white-space:nowrap;}
+.yr-table th:first-child{text-align:left;min-width:140px;border-radius:0;}
+.yr-table td{padding:7px 10px;border-bottom:1px solid var(--border);border-right:1px solid var(--border);text-align:center;font-weight:600;}
+.yr-table td:first-child{text-align:left;font-weight:600;color:var(--text);background:var(--light);white-space:nowrap;padding:7px 12px;}
+.yr-table tr:last-child td{border-bottom:none;}
+.yr-cell-0{color:var(--muted);font-weight:400;}
+.yr-cell-1{background:rgba(0,200,150,.12);color:#00875A;}
+.yr-cell-2{background:rgba(0,149,109,.2);color:#005A3C;}
+.yr-cell-3{background:rgba(0,105,92,.3);color:#003D2D;}
+.yr-cell-hi{background:rgba(0,77,64,.4);color:#fff;}
+.yr-total-row td{background:var(--teal3);font-weight:700;color:var(--teal2);}
+.yr-total-row td:first-child{background:var(--teal);color:#fff;}
+.yr-heat-legend{display:flex;align-items:center;gap:8px;margin-top:12px;flex-wrap:wrap;font-size:11px;color:var(--muted);}
+.yr-heat-swatch{width:14px;height:14px;border-radius:3px;flex-shrink:0;}
+
+@media print{
+  .chart-panel{page-break-inside:avoid;}
+  .chart-body{max-height:none!important;overflow:visible!important;}
+}
+
+footer{text-align:center;padding:16px;font-size:12px;color:var(--muted);border-top:1px solid var(--border);background:var(--white);margin-top:4px;}
+footer span{color:var(--teal);font-weight:600;}
+
+@media(max-width:640px){
+  header,.controls,main,.dashboard{padding-left:14px;padding-right:14px;}
+  .dash-div{display:none;}
+  .tr2{grid-template-columns:1fr;}
+  .occ-info{width:110px;}
+  .hdr-btn span{display:none;}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="hdr-row">
+    <div class="brand">
+      <img class="gitam-logo" src="data:image/png;base64,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" alt="GITAM Logo"/>
+      <div class="brand-txt">
+        <h1>GITAM Hospitality</h1>
+        <p>Directorate of Hospitality – Event Index</p>
+      </div>
+    </div>
+    <div class="hdr-right">
+      <div class="date-wrap">
+        <label>📅 Date</label>
+        <input type="date" id="datePicker"/>
+      </div>
+      <div class="hdr-btns">
+        <button class="hdr-btn" onclick="openShareModal()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/></svg>
+          <span>Share</span>
+        </button>
+        <button class="hdr-btn" onclick="window.print()">🖨️ <span>Print</span></button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="print-date" id="printDateLine"></div>
+
+<!-- DASHBOARD -->
+<div class="dashboard">
+  <div class="dash-kpi"><div class="kpi-icon ki-teal">🏛️</div><div><div class="kpi-val" id="kV">0</div><div class="kpi-lbl">Total Venues</div></div></div>
+  <div class="dash-kpi"><div class="kpi-icon ki-grn">✅</div><div><div class="kpi-val" id="kB">0</div><div class="kpi-lbl">Booked</div></div></div>
+  <div class="dash-kpi"><div class="kpi-icon ki-red">⬜</div><div><div class="kpi-val" id="kF">0</div><div class="kpi-lbl">Available</div></div></div>
+  <div class="dash-kpi"><div class="kpi-icon ki-gold">📊</div><div><div class="kpi-val" id="kP">0%</div><div class="kpi-lbl">Occupancy</div></div></div>
+  <div class="dash-div"></div>
+  <div class="dash-occ">
+    <div class="occ-title">Building-wise Venue Occupancy</div>
+    <div id="occBars"></div>
+  </div>
+</div>
+
+<!-- VENUE CHART PANEL -->
+<div class="chart-panel">
+  <div class="chart-toggle" id="chartToggle" onclick="toggleChart()">
+    <div class="chart-toggle-left">
+      <div class="chart-toggle-icon">📊</div>
+      <div>
+        <div class="chart-toggle-title">Venue-wise Monthly Occupancy</div>
+        <div class="chart-toggle-sub" id="chartSubtitle">Booked days % per venue for the current month</div>
+      </div>
+    </div>
+    <span class="chart-toggle-arrow open" id="chartArrow">▼</span>
+  </div>
+  <div class="chart-body open" id="chartBody">
+    <div class="chart-body-inner">
+      <div class="chart-legend">
+        <div class="legend-item"><div class="legend-dot legend-booked"></div>Booked Days</div>
+        <div class="legend-item"><div class="legend-dot legend-avail"></div>Available Days</div>
+        <div class="legend-item" style="margin-left:auto;font-size:11px;color:var(--muted);">Hover bar for day counts</div>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="venueChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DEPARTMENT CHART PANEL -->
+<div class="chart-panel">
+  <div class="chart-toggle" id="deptChartToggle" onclick="toggleDeptChart()">
+    <div class="chart-toggle-left">
+      <div class="chart-toggle-icon">🏢</div>
+      <div>
+        <div class="chart-toggle-title">Department-wise Total Venue Bookings</div>
+        <div class="chart-toggle-sub" id="deptChartSubtitle">Total bookings and share by department</div>
+      </div>
+    </div>
+    <span class="chart-toggle-arrow open" id="deptChartArrow">▼</span>
+  </div>
+  <div class="chart-body open" id="deptChartBody">
+    <div class="chart-body-inner">
+      <div class="chart-wrap">
+        <canvas id="deptChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BOOKING CALENDAR -->
+<div class="cal-panel">
+  <div class="cal-toggle" onclick="toggleCal()">
+    <div class="cal-toggle-left">
+      <div class="cal-toggle-icon">📅</div>
+      <div>
+        <div class="cal-toggle-title">Booking Calendar</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:1px;">Monthly view — click a date to navigate</div>
+      </div>
+    </div>
+    <span class="cal-toggle-arrow" id="calArrow">▼</span>
+  </div>
+  <div class="cal-body" id="calBody">
+    <div class="cal-body-inner">
+      <div class="cal-nav">
+        <button class="cal-nav-btn" onclick="calShift(-1)">‹</button>
+        <span class="cal-month-lbl" id="calMonthLbl"></span>
+        <button class="cal-nav-btn" onclick="calShift(1)">›</button>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+      <div class="cal-legend">
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--teal)"></div>Booked venues</div>
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--gold2);border:1.5px solid var(--gold)"></div>Today</div>
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--teal3);border:1.5px solid var(--teal)"></div>Selected date</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- YEARLY VIEW -->
+<div class="yr-panel">
+  <div class="yr-toggle" onclick="toggleYr()">
+    <div class="yr-toggle-left">
+      <div class="yr-toggle-icon">📆</div>
+      <div>
+        <div class="yr-toggle-title">Yearly Venue Bookings</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:1px;">Booking count per venue per month across the year</div>
+      </div>
+    </div>
+    <span class="yr-toggle-arrow" id="yrArrow">▼</span>
+  </div>
+  <div class="yr-body" id="yrBody">
+    <div class="yr-body-inner">
+      <div class="yr-nav">
+        <button class="yr-nav-btn" onclick="yrShift(-1)">‹</button>
+        <span class="yr-label" id="yrLabel"></span>
+        <button class="yr-nav-btn" onclick="yrShift(1)">›</button>
+      </div>
+      <div id="yrTableWrap"></div>
+      <div class="yr-heat-legend">
+        <span>Intensity:</span>
+        <div class="yr-heat-swatch yr-cell-0" style="border:1px solid var(--border)"></div><span>0</span>
+        <div class="yr-heat-swatch yr-cell-1"></div><span>1–3</span>
+        <div class="yr-heat-swatch yr-cell-2"></div><span>4–8</span>
+        <div class="yr-heat-swatch yr-cell-3"></div><span>9–15</span>
+        <div class="yr-heat-swatch yr-cell-hi"></div><span>16+</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CONTROLS -->
+<div class="controls">
+  <div class="srch-wrap">
+    <span class="srch-ico">🔍</span>
+    <input type="text" id="srch" placeholder="Search venue or event…" oninput="applyFilters()"/>
+  </div>
+  <div class="fbtns">
+    <button class="fb active" onclick="setFilter('all',this)">All Venues</button>
+    <button class="fb" onclick="setFilter('event',this)">Events Only</button>
+    <button class="fb" onclick="setFilter('available',this)">Available</button>
+  </div>
+</div>
+
+<main id="mc">
+  <div style="text-align:center;padding:40px;color:var(--muted);">Loading…</div>
+</main>
+
+<!-- ── EDIT EVENT MODAL ── -->
+<div class="ov" id="editOv">
+  <div class="modal">
+    <div class="mhdr">
+      <div><h3>Event Bookings</h3><small id="editVenueLbl"></small></div>
+      <button class="mclose" onclick="closeEditModal()">✕</button>
+    </div>
+    <div class="mbody" style="max-height:72vh;overflow-y:auto;">
+      <div id="bookingsList"></div>
+      <button class="add-booking-btn" onclick="addBookingCard()">＋ Add Booking</button>
+    </div>
+    <div class="mfoot">
+      <button class="btn btn-danger" onclick="clearAllBookings()">🗑 Clear All</button>
+      <button class="btn btn-ghost" onclick="closeEditModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEvent()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── ADD VENUE MODAL ── -->
+<div class="ov" id="addVenueOv">
+  <div class="modal">
+    <div class="mhdr">
+      <div><h3>Add New Venue</h3><small id="addVenueBuildingLbl"></small></div>
+      <button class="mclose" onclick="closeAddVenueModal()">✕</button>
+    </div>
+    <div class="mbody">
+      <div class="fg">
+        <label>Venue Name</label>
+        <input type="text" id="avName" placeholder="e.g. Conference Room A, Lab 201…"/>
+      </div>
+      <div class="fg">
+        <label>Event Description <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></label>
+        <textarea id="avDesc" rows="2" placeholder="Leave blank if no event yet…"></textarea>
+      </div>
+      <div class="fg">
+        <label>Department</label>
+        <select id="avDept" onchange="handleAvDeptChange()">
+          <option value="">— None —</option>
+          <option value="General">General</option>
+          <option value="Student Life">Student Life</option>
+          <option value="Academic">Academic</option>
+          <option value="Administration">Administration</option>
+          <option value="HR">HR</option>
+          <option value="IT">IT</option>
+          <option value="Finance">Finance</option>
+          <option value="Facilities">Facilities</option>
+          <option value="Research">Research</option>
+          <option value="__custom__">＋ Custom Department…</option>
+        </select>
+        <div id="avCustomWrap" style="display:none;margin-top:8px;">
+          <input type="text" id="avCustomDept" placeholder="Type department name…" style="border-color:var(--gold);"/>
+        </div>
+      </div>
+      <div class="fg">
+        <label>Time Slot <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></label>
+        <div class="tr2">
+          <div><span class="sub-lbl">Start Time</span><input type="time" id="avTs"/></div>
+          <div><span class="sub-lbl">End Time</span><input type="time" id="avTe"/></div>
+        </div>
+      </div>
+    </div>
+    <div class="mfoot">
+      <button class="btn btn-ghost" onclick="closeAddVenueModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveNewVenue()">Add Venue</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MANAGE VENUES MODAL ── -->
+<div class="ov" id="manageOv">
+  <div class="modal">
+    <div class="mhdr">
+      <div><h3>Manage Venues</h3><small id="manageBuildingLbl"></small></div>
+      <button class="mclose" onclick="closeManageModal()">✕</button>
+    </div>
+    <div class="mbody">
+      <div class="venue-list" id="venueList"></div>
+      <div style="margin-top:12px;">
+        <button class="add-inline-btn" onclick="addInlineVenue()">＋ Add New Venue</button>
+      </div>
+    </div>
+    <div class="mfoot">
+      <button class="btn btn-ghost" onclick="closeManageModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveManageModal()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<footer>
+  GITAM Hospitality &nbsp;|&nbsp; <span>Directorate of Hospitality</span> &nbsp;|&nbsp; Event Index
+</footer>
+
+<!-- ── SHARE MODAL ── -->
+<div class="ov" id="shareOv">
+  <div class="modal">
+    <div class="mhdr">
+      <div><h3>Share Event Details</h3><small id="shareBuildingLbl"></small></div>
+      <button class="mclose" onclick="closeShareModal()">✕</button>
+    </div>
+    <div class="mbody" id="shareModalBody">
+      <div class="share-spinner" id="shareSpinner">
+        <div class="spinner-ring"></div>
+        <span>Generating image…</span>
+      </div>
+      <div id="shareContent" style="display:none;">
+        <div class="share-preview-label">Preview</div>
+        <div class="share-preview-wrap">
+          <img id="shareImgPreview" class="share-preview" src="" alt="Preview"/>
+        </div>
+        <div class="share-actions">
+          <button class="wa-btn" onclick="shareViaWhatsApp()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            Share via WhatsApp
+          </button>
+          <button class="dl-btn" onclick="downloadShareImage()">⬇ Download Image</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── DEFAULT BUILDINGS ────────────────────────────────────────────────── */
+const DEFAULT_BUILDINGS = [
+  {id:'shivaji',label:'Shivaji Bhavan',icon:'🏛️',venues:[
+    {id:1,name:'Shivaji Auditorium'},{id:2,name:'Graces Hall'},{id:3,name:'Pro VC Boardroom'},
+    {id:4,name:'G-124'},{id:5,name:'301 Seminar Hall'},{id:6,name:'501 Seminar Hall'},
+    {id:7,name:'Kensan'},{id:8,name:'Library'},{id:9,name:'Kojo'}
+  ]},
+  {id:'visvesvaraya',label:'Visvesvaraya Bhavan',icon:'🏢',venues:[
+    {id:10,name:'115 Board Room'},{id:11,name:'315 Seminar Hall'},{id:12,name:'Horseshoe Classroom'}
+  ]}
+];
+
+const SEED_EVENTS = {
+  1: [{desc:'Case 18 – Short Film Screening',dept:'General',start:'15:00',end:'18:50',note:''}],
+  4: [{desc:'IoT Controls in Smart Sericulture – Workshop for Mulberry Farmers',dept:'General',start:'10:00',end:'13:50',note:''}],
+  6: [{desc:'Student Life Meeting',dept:'Student Life',start:'15:00',end:'18:50',note:''}],
+  10:[{desc:'Tele Counselors Calling Centre & Parents Waiting Hall',dept:'General',start:'08:00',end:'17:50',note:''}]
+};
+
+/* ── STATE ──────────────────────────────────────────────────────────────── */
+let currentDate = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD, today's date
+let currentFilter = 'all';
+let editId = null;
+let addBuildingId = null;
+let buildings = [];
+let allEvents = {};
+let nextVenueId = 100;
+let calViewDate = currentDate;   // YYYY-MM-DD, used as month reference
+let yrViewYear  = new Date().getFullYear();
+
+/* ── STORAGE (Firebase Realtime Database) ─────────────────────────────────── */
+async function load() {
+  try {
+    const snap = await db.ref(FB_ROOT).get();
+    const data  = snap.val();
+    buildings   = (data && data.buildings)  ? data.buildings  : JSON.parse(JSON.stringify(DEFAULT_BUILDINGS));
+    allEvents   = (data && data.events)     ? data.events     : {};
+    nextVenueId = (data && data.nextId)     ? data.nextId     : 100;
+  } catch(e) {
+    console.warn('Firebase load error, using defaults:', e);
+    buildings   = JSON.parse(JSON.stringify(DEFAULT_BUILDINGS));
+    allEvents   = {};
+    nextVenueId = 100;
+  }
+  if (!allEvents['2026-03-24']) allEvents['2026-03-24'] = JSON.parse(JSON.stringify(SEED_EVENTS));
+  // Migrate legacy single-object format → array
+  Object.keys(allEvents).forEach(date => {
+    const day = allEvents[date];
+    Object.keys(day).forEach(vid => {
+      const v = day[vid];
+      if (v && !Array.isArray(v)) {
+        day[vid] = (v.desc && v.desc.trim()) ? [Object.assign({note:''}, v)] : [];
+      }
+    });
+  });
+}
+function persist() {
+  db.ref(FB_ROOT).set({
+    buildings:  buildings,
+    events:     allEvents,
+    nextId:     nextVenueId
+  }).catch(e => console.warn('Firebase persist error:', e));
+}
+function dateEv(d) { return allEvents[d || currentDate] || {}; }
+
+// Returns array of valid bookings stored on a specific date key (used for editing/saving)
+function getBookings(venueId, dateStr) {
+  const day = allEvents[dateStr || currentDate] || {};
+  const v   = day[venueId];
+  if (!v) return [];
+  if (Array.isArray(v)) return v.filter(b => b && b.desc && b.desc.trim());
+  if (v.desc && v.desc.trim()) return [Object.assign({note:''}, v)]; // legacy
+  return [];
+}
+
+// Returns all valid bookings for a venue that cover a given date (respects fromDate–toDate range)
+function getBookingsOnDate(venueId, dateStr) {
+  const ds = dateStr || currentDate;
+  const results = [];
+  Object.keys(allEvents).forEach(storedDate => {
+    const day = allEvents[storedDate];
+    const v   = day[venueId];
+    if (!v) return;
+    const arr = Array.isArray(v)
+      ? v.filter(b => b && b.desc && b.desc.trim())
+      : (v.desc && v.desc.trim() ? [Object.assign({note:''}, v)] : []);
+    arr.forEach(b => {
+      const from = b.fromDate || storedDate;
+      const to   = b.toDate   || storedDate;
+      if (ds >= from && ds <= to) results.push(b);
+    });
+  });
+  return results;
+}
+function hasBooking(venueId, dateStr) { return getBookingsOnDate(venueId, dateStr).length > 0; }
+
+function setBookings(venueId, arr) {
+  if (!allEvents[currentDate]) allEvents[currentDate] = {};
+  if (arr && arr.length) allEvents[currentDate][venueId] = arr;
+  else delete allEvents[currentDate][venueId];
+  persist();
+}
+
+/* ── UTILS ────────────────────────────────────────────────────────────────── */
+function fmt(t) {
+  if (!t) return '';
+  const [h,m] = t.split(':').map(Number);
+  const ap = h >= 12 ? 'PM' : 'AM';
+  const h12 = h % 12 || 12;
+  return `${String(h12).padStart(2,'0')}:${String(m).padStart(2,'0')} ${ap}`;
+}
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function ea(s) { return String(s||'').replace(/'/g,'&#39;'); }
+
+function deptBadge(d) {
+  if (!d) return `<span class="badge bg-emp">—</span>`;
+  const STD = ['General','Student Life','Academic','Administration','HR','IT','Finance','Facilities','Research'];
+  const cls = d === 'Student Life' ? 'bg-stu' : STD.includes(d) ? 'bg-gen' : 'bg-cus';
+  return `<span class="badge ${cls}">${esc(d)}</span>`;
+}
+function dateLabel(d) {
+  const dt = new Date(d + 'T00:00:00');
+  return dt.toLocaleDateString('en-IN', {weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+}
+function allVenues() { return buildings.flatMap(b => b.venues); }
+function getBuildingById(id) { return buildings.find(b => b.id === id); }
+
+/* ── RENDER ────────────────────────────────────────────────────────────────── */
+function render() {
+  document.getElementById('printDateLine').textContent = 'Printed: ' + dateLabel(currentDate);
+  calViewDate = currentDate;
+  yrViewYear  = parseInt(currentDate.slice(0,4));
+  renderTables();
+  renderDash();
+  renderVenueChart();
+  renderDeptChart();
+  renderCalendar();
+  renderYearlyView();
+  applyFilters();
+}
+
+function renderTables() {
+  let html = '';
+  let serial = 1;
+  buildings.forEach(b => {
+    const totalV  = b.venues.length;
+    const bookedV = b.venues.filter(v => hasBooking(v.id, currentDate)).length;
+    const bPct    = totalV ? Math.round(bookedV / totalV * 100) : 0;
+
+    const rows = b.venues.map(v => {
+      const bks = getBookingsOnDate(v.id, currentDate);
+      const has = bks.length > 0;
+      const first = has ? bks[0] : null;
+      const ts  = (first && first.start && first.end) ? `${fmt(first.start)} – ${fmt(first.end)}` : '';
+      const dr  = (first && first.fromDate && first.toDate && first.fromDate !== first.toDate)
+                  ? `<div style="font-size:10.5px;color:var(--muted);margin-top:2px;">📅 ${first.fromDate} → ${first.toDate}</div>`
+                  : (first && first.fromDate ? `<div style="font-size:10.5px;color:var(--muted);margin-top:2px;">📅 ${first.fromDate}</div>` : '');
+      const sl  = serial++;
+      const extraBadge = bks.length > 1 ? `<span class="multi-badge">+${bks.length-1} more</span>` : '';
+      const descHtml = has
+        ? `${esc(first.desc)}${extraBadge}${first.note ? `<div style="font-size:11px;color:var(--muted);margin-top:2px;">📝 ${esc(first.note)}</div>` : ''}`
+        : '— No event scheduled —';
+      return `
+      <tr class="${has?'has-ev':''}" data-id="${v.id}" data-b="${b.id}" data-ev="${has}">
+        <td class="sl">${sl}</td>
+        <td class="vnm"><span class="sd ${has?'sd-on':'sd-off'}"></span>${esc(v.name)}</td>
+        <td class="${has?'edesc':'eempty'}">${descHtml}</td>
+        <td>${has ? deptBadge(first.dept) : '<span class="badge bg-emp">—</span>'}</td>
+        <td class="${has?'ton':'toff'}">${ts||'—'}${dr}</td>
+        <td><span class="vpct ${has?'vpct-on':'vpct-off'}">${has?(bks.length>1?`${bks.length} bookings`:'Booked'):'Free'}</span></td>
+        <td>
+          <div class="act-cell">
+            <button class="ebtn" onclick="openEditModal(${v.id},'${ea(v.name)}')">✏️ Edit</button>
+            <button class="delbtn" onclick="deleteVenue(${v.id},'${ea(v.name)}','${b.id}')">🗑</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+
+    html += `
+    <div class="section" id="s-${b.id}" data-b="${b.id}">
+      <div class="sec-hdr">
+        <div class="sec-ico">${b.icon}</div>
+        <div class="sec-title">${b.label}</div>
+        <div class="sec-right">
+          <span class="sec-pct-badge">${bPct}% Occupied</span>
+          <span class="sec-count">${totalV} Venues</span>
+          <button class="mgbtn" onclick="openManageModal('${b.id}')">⚙ Manage Venues</button>
+          <button class="add-venue-btn" onclick="openAddVenueModal('${b.id}')">＋ Add Venue</button>
+        </div>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr>
+            <th>#</th><th>Venue</th><th>Event Description</th>
+            <th>Department</th><th>Time</th><th>Status</th><th>Actions</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </div>`;
+  });
+
+  html += `<div class="no-r" id="noR">
+    <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#7A9490" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <p>No matching results found.</p>
+  </div>`;
+
+  document.getElementById('mc').innerHTML = html;
+}
+
+function renderDash() {
+  const all = allVenues();
+  const tot = all.length;
+  const bkd = all.filter(v => hasBooking(v.id, currentDate)).length;
+
+  document.getElementById('kV').textContent = tot;
+  document.getElementById('kB').textContent = bkd;
+  document.getElementById('kF').textContent = tot - bkd;
+  document.getElementById('kP').textContent = tot ? Math.round(bkd/tot*100)+'%' : '0%';
+
+  document.getElementById('occBars').innerHTML = buildings.map(b => {
+    const bv = b.venues.length;
+    const bb = b.venues.filter(v => hasBooking(v.id, currentDate)).length;
+    const bp = bv ? Math.round(bb/bv*100) : 0;
+    return `
+    <div class="occ-row">
+      <div class="occ-info">
+        <div class="occ-name" title="${b.label}">${b.label}</div>
+        <div class="occ-sub">${bb} of ${bv} venues booked</div>
+      </div>
+      <div class="occ-bar-bg"><div class="occ-bar" style="width:${bp}%"></div></div>
+      <span class="occ-pct">${bp}%</span>
+    </div>`;
+  }).join('');
+}
+
+/* ── FILTERS ──────────────────────────────────────────────────────────────── */
+function setFilter(t, btn) {
+  currentFilter = t;
+  document.querySelectorAll('.fb').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  applyFilters();
+}
+function applyFilters() {
+  const q = document.getElementById('srch').value.toLowerCase().trim();
+  let vis = 0;
+  document.querySelectorAll('tbody tr').forEach(row => {
+    const isEv = row.dataset.ev === 'true';
+    let show = true;
+    if (currentFilter==='event' && !isEv) show = false;
+    if (currentFilter==='available' && isEv) show = false;
+    if (q && !row.textContent.toLowerCase().includes(q)) show = false;
+    row.classList.toggle('rh', !show);
+    if (show) vis++;
+  });
+  buildings.forEach(b => {
+    const s = document.getElementById('s-'+b.id);
+    if (s) s.style.display = s.querySelectorAll('tbody tr:not(.rh)').length ? '' : 'none';
+  });
+  const nr = document.getElementById('noR');
+  if (nr) nr.style.display = vis ? 'none' : 'block';
+}
+
+/* ── EDIT MODAL (multi-booking) ────────────────────────────────────────────── */
+const STD_DEPTS = ['','General','Student Life','Academic','Administration','HR','IT','Finance','Facilities','Research'];
+const DEPT_OPTIONS = ['General','Student Life','Academic','Administration','HR','IT','Finance','Facilities','Research'];
+
+function deptSelectHtml(selected) {
+  const opts = DEPT_OPTIONS.map(d =>
+    `<option value="${d}"${selected===d?' selected':''}>${d}</option>`
+  ).join('');
+  const isCustom = selected && !STD_DEPTS.includes(selected);
+  return `
+    <option value="">— None —</option>
+    ${opts}
+    <option value="__custom__"${isCustom?' selected':''}>＋ Custom…</option>`;
+}
+
+function bookingCardHtml(bk, idx) {
+  const isCustom = bk.dept && !STD_DEPTS.includes(bk.dept);
+  return `
+  <div class="booking-card" id="bc-${idx}">
+    <div class="bc-header">
+      <span class="bc-num">Booking #${idx+1}</span>
+      <button class="bc-del" onclick="removeBookingCard(${idx})" title="Remove booking">🗑</button>
+    </div>
+    <div class="bc-field">
+      <label>Event Description</label>
+      <textarea class="bc-desc" rows="2" placeholder="Event description…">${esc(bk.desc||'')}</textarea>
+    </div>
+    <div class="bc-field">
+      <label>Note</label>
+      <input type="text" class="bc-note" placeholder="Additional note (optional)…" value="${esc(bk.note||'')}"/>
+    </div>
+    <div class="bc-row" style="margin-bottom:0;">
+      <div class="bc-field">
+        <label>From Date</label>
+        <input type="date" class="bc-fd" value="${esc(bk.fromDate||currentDate)}"/>
+      </div>
+      <div class="bc-field">
+        <label>To Date</label>
+        <input type="date" class="bc-td" value="${esc(bk.toDate||currentDate)}"/>
+      </div>
+    </div>
+    <div class="bc-row">
+      <div class="bc-field">
+        <label>Department</label>
+        <select class="bc-dept" onchange="handleBcDept(this)">${deptSelectHtml(isCustom?'__custom__':bk.dept)}</select>
+        <div class="bc-custom-wrap" style="display:${isCustom?'block':'none'};margin-top:6px;">
+          <input type="text" class="bc-custom-dept" placeholder="Custom department…" value="${esc(isCustom?bk.dept:'')}"/>
+        </div>
+      </div>
+      <div class="bc-field">
+        <label>Time Slot</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:0;">
+          <div>
+            <div style="font-size:10px;color:var(--muted);margin-bottom:4px;">Start</div>
+            <input type="time" class="bc-ts" value="${bk.start||''}"/>
+          </div>
+          <div>
+            <div style="font-size:10px;color:var(--muted);margin-bottom:4px;">End</div>
+            <input type="time" class="bc-te" value="${bk.end||''}"/>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+let editBookings = [];
+
+function openEditModal(id, name) {
+  editId = id;
+  editBookings = JSON.parse(JSON.stringify(getBookingsOnDate(id, currentDate)));
+  if (editBookings.length === 0) editBookings = [{desc:'',dept:'',start:'',end:'',note:'',fromDate:currentDate,toDate:currentDate}];
+  document.getElementById('editVenueLbl').textContent = `${name}  ·  ${dateLabel(currentDate)}`;
+  renderBookingsList();
+  document.getElementById('editOv').classList.add('open');
+}
+
+function renderBookingsList() {
+  document.getElementById('bookingsList').innerHTML =
+    editBookings.length === 0
+      ? `<div class="bookings-empty">No bookings yet — click "＋ Add Booking" to start.</div>`
+      : editBookings.map((bk, i) => bookingCardHtml(bk, i)).join('');
+}
+
+function addBookingCard() {
+  editBookings.push({desc:'',dept:'',start:'',end:'',note:'',fromDate:currentDate,toDate:currentDate});
+  renderBookingsList();
+  const cards = document.querySelectorAll('.booking-card');
+  if (cards.length) cards[cards.length-1].scrollIntoView({behavior:'smooth',block:'nearest'});
+  const last = document.querySelectorAll('.bc-desc');
+  if (last.length) last[last.length-1].focus();
+}
+
+function removeBookingCard(idx) {
+  editBookings.splice(idx, 1);
+  renderBookingsList();
+}
+
+function handleBcDept(sel) {
+  const wrap = sel.closest('.bc-field').querySelector('.bc-custom-wrap');
+  wrap.style.display = sel.value === '__custom__' ? 'block' : 'none';
+}
+
+function collectBookings() {
+  return Array.from(document.querySelectorAll('.booking-card')).map(card => {
+    const sel = card.querySelector('.bc-dept');
+    const isCustom = sel.value === '__custom__';
+    const dept = isCustom ? card.querySelector('.bc-custom-dept').value.trim() : sel.value;
+    return {
+      desc:  card.querySelector('.bc-desc').value.trim(),
+      note:  card.querySelector('.bc-note').value.trim(),
+      dept,
+      start: card.querySelector('.bc-ts').value,
+      end:   card.querySelector('.bc-te').value,
+      fromDate: card.querySelector('.bc-fd').value,
+      toDate:   card.querySelector('.bc-td').value,
+    };
+  }).filter(b => b.desc);
+}
+
+function saveEvent() {
+  const bookings = collectBookings();
+  setBookings(editId, bookings.length ? bookings : null);
+  closeEditModal();
+  render();
+}
+
+function clearAllBookings() {
+  if (!confirm('Remove all bookings for this venue on this date?')) return;
+  setBookings(editId, null);
+  closeEditModal();
+  render();
+}
+
+function closeEditModal() { document.getElementById('editOv').classList.remove('open'); editId = null; editBookings = []; }
+
+// Keep old resolveDept used by Add Venue modal
+function resolveDept(selId, customId) {
+  const v = document.getElementById(selId).value;
+  if (v === '__custom__') return document.getElementById(customId).value.trim();
+  return v;
+}
+
+/* ── ADD VENUE MODAL ─────────────────────────────────────────────────────── */
+function openAddVenueModal(buildingId) {
+  addBuildingId = buildingId;
+  const b = getBuildingById(buildingId);
+  document.getElementById('addVenueBuildingLbl').textContent = b ? b.label : '';
+  document.getElementById('avName').value = '';
+  document.getElementById('avDesc').value = '';
+  document.getElementById('avDept').value = '';
+  document.getElementById('avTs').value = '';
+  document.getElementById('avTe').value = '';
+  document.getElementById('avCustomWrap').style.display = 'none';
+  document.getElementById('avCustomDept').value = '';
+  document.getElementById('addVenueOv').classList.add('open');
+  setTimeout(() => document.getElementById('avName').focus(), 100);
+}
+function closeAddVenueModal() { document.getElementById('addVenueOv').classList.remove('open'); addBuildingId = null; }
+
+function handleAvDeptChange() {
+  const v = document.getElementById('avDept').value;
+  document.getElementById('avCustomWrap').style.display = v === '__custom__' ? 'block' : 'none';
+}
+
+function saveNewVenue() {
+  const name = document.getElementById('avName').value.trim();
+  if (!name) { document.getElementById('avName').focus(); document.getElementById('avName').style.borderColor='var(--red)'; return; }
+  document.getElementById('avName').style.borderColor='';
+
+  const b = getBuildingById(addBuildingId);
+  if (!b) return;
+
+  const newId = nextVenueId++;
+  b.venues.push({id: newId, name});
+
+  const desc = document.getElementById('avDesc').value.trim();
+  const dept = resolveDept('avDept','avCustomDept');
+  const ts   = document.getElementById('avTs').value;
+  const te   = document.getElementById('avTe').value;
+
+  if (desc) setBookings(newId, [{desc, dept, start:ts, end:te, note:''}]);
+  persist();
+  closeAddVenueModal();
+  render();
+}
+
+/* ── DELETE VENUE ─────────────────────────────────────────────────────────── */
+function deleteVenue(id, name, buildingId) {
+  if (!confirm(`Remove venue "${name}"? All events for this venue will be deleted.`)) return;
+  const b = getBuildingById(buildingId);
+  if (!b) return;
+  b.venues = b.venues.filter(v => v.id !== id);
+  Object.keys(allEvents).forEach(d => { delete allEvents[d][id]; });
+  persist(); render();
+}
+
+/* ── MANAGE VENUES MODAL ──────────────────────────────────────────────────── */
+let manageBuildingId = null;
+
+function openManageModal(buildingId) {
+  manageBuildingId = buildingId;
+  const b = getBuildingById(buildingId);
+  if (!b) return;
+  document.getElementById('manageBuildingLbl').textContent = b.label;
+  renderVenueList();
+  document.getElementById('manageOv').classList.add('open');
+}
+
+function renderVenueList() {
+  const b = getBuildingById(manageBuildingId);
+  if (!b) return;
+  const list = document.getElementById('venueList');
+  list.innerHTML = b.venues.map((v, i) => `
+    <div class="venue-row" id="vrow-${v.id}">
+      <span class="venue-row-num">${i + 1}</span>
+      <input type="text" value="${esc(v.name)}" data-vid="${v.id}" placeholder="Venue name…"
+        oninput="markDirty()" onkeydown="if(event.key==='Enter'){saveManageModal();}"/>
+      <button class="venue-row-del" title="Remove venue" onclick="removeVenueRow(${v.id},'${ea(v.name)}')">🗑</button>
+    </div>`).join('');
+}
+
+function addInlineVenue() {
+  const b = getBuildingById(manageBuildingId);
+  if (!b) return;
+  const newId = nextVenueId++;
+  // Temporarily add to building so row renders
+  b.venues.push({ id: newId, name: '' });
+  persist();
+  renderVenueList();
+  // Focus the new empty input
+  const inputs = document.querySelectorAll('#venueList .venue-row input');
+  if (inputs.length) {
+    const last = inputs[inputs.length - 1];
+    last.focus();
+    last.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+}
+
+function removeVenueRow(id, name) {
+  const b = getBuildingById(manageBuildingId);
+  if (!b) return;
+  const hasEvents = Object.keys(allEvents).some(ds => getBookings(id, ds).length > 0);
+  const msg = hasEvents
+    ? `Remove "${name}"? It has events recorded — those will also be deleted.`
+    : `Remove "${name}"?`;
+  if (!confirm(msg)) return;
+  b.venues = b.venues.filter(v => v.id !== id);
+  Object.keys(allEvents).forEach(d => { delete allEvents[d][id]; });
+  persist();
+  renderVenueList();
+}
+
+function markDirty() { /* just triggers re-read on save */ }
+
+function saveManageModal() {
+  const b = getBuildingById(manageBuildingId);
+  if (!b) return;
+  const inputs = document.querySelectorAll('#venueList .venue-row input');
+  let hasEmpty = false;
+  inputs.forEach(inp => {
+    const vid  = parseInt(inp.dataset.vid);
+    const name = inp.value.trim();
+    if (!name) { hasEmpty = true; inp.style.borderColor = 'var(--red)'; inp.focus(); return; }
+    inp.style.borderColor = '';
+    const venue = b.venues.find(v => v.id === vid);
+    if (venue) venue.name = name;
+  });
+  if (hasEmpty) return;
+  persist();
+  closeManageModal();
+  render();
+}
+
+function closeManageModal() {
+  document.getElementById('manageOv').classList.remove('open');
+  manageBuildingId = null;
+}
+
+/* ── VENUE CHART — MONTHLY OCCUPANCY ────────────────────────────────────── */
+let venueChartInstance = null;
+
+function toggleChart() {
+  const body  = document.getElementById('chartBody');
+  const arrow = document.getElementById('chartArrow');
+  body.classList.toggle('open');
+  arrow.classList.toggle('open');
+}
+
+function getMonthDates(dateStr) {
+  const d   = new Date(dateStr + 'T00:00:00');
+  const yr  = d.getFullYear();
+  const mo  = d.getMonth();
+  const days = new Date(yr, mo + 1, 0).getDate();
+  const dates = [];
+  for (let i = 1; i <= days; i++) {
+    dates.push(`${yr}-${String(mo+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`);
+  }
+  return dates;
+}
+
+function renderVenueChart() {
+  const monthDates = getMonthDates(currentDate);
+  const totalDays  = monthDates.length;
+
+  // Update subtitle
+  const d = new Date(currentDate + 'T00:00:00');
+  const monthName = d.toLocaleDateString('en-IN', {month:'long', year:'numeric'});
+  const sub = document.getElementById('chartSubtitle');
+  if (sub) sub.textContent = `Booked days as % of total days · ${monthName} (${totalDays} days)`;
+
+  const labels      = [];
+  const bookedPcts  = [];
+  const availPcts   = [];
+  const buildingLabels = []; // for group separator
+
+  buildings.forEach(b => {
+    b.venues.forEach(v => {
+      // Count days this venue had an event in the month
+      let bookedDays = 0;
+      monthDates.forEach(dt => {
+        if (getBookingsOnDate(v.id, dt).length > 0) bookedDays++;
+      });
+      const pct  = Math.round((bookedDays / totalDays) * 100);
+      labels.push(v.name);
+      bookedPcts.push(pct);
+      availPcts.push(100 - pct);
+      buildingLabels.push(b.label);
+    });
+  });
+
+  const canvas = document.getElementById('venueChart');
+  if (!canvas) return;
+
+  const rowH = 38;
+  canvas.style.height = (labels.length * rowH + 50) + 'px';
+  canvas.height        = labels.length * rowH + 50;
+
+  if (venueChartInstance) { venueChartInstance.destroy(); venueChartInstance = null; }
+
+  Chart.register(ChartDataLabels);
+  venueChartInstance = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Booked Days %',
+          data: bookedPcts,
+          backgroundColor: bookedPcts.map(p =>
+            p === 0   ? 'rgba(216,228,226,0.5)' :
+            p < 30    ? 'rgba(0,200,150,0.75)'  :
+            p < 70    ? 'rgba(0,149,109,0.82)'  :
+                        'rgba(0,77,64,0.88)'
+          ),
+          borderColor: 'rgba(0,77,64,0.25)',
+          borderWidth: 1,
+          borderRadius: 4,
+          barPercentage: 0.68,
+          categoryPercentage: 0.85,
+        },
+        {
+          label: 'Available Days %',
+          data: availPcts,
+          backgroundColor: 'rgba(216,228,226,0.45)',
+          borderColor: 'rgba(180,200,196,0.3)',
+          borderWidth: 1,
+          borderRadius: 4,
+          barPercentage: 0.68,
+          categoryPercentage: 0.85,
+        }
+      ]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title(items) { return items[0].label + ' · ' + buildingLabels[items[0].dataIndex]; },
+            label(ctx) {
+              const idx = ctx.dataIndex;
+              const bd  = bookedPcts[idx];
+              const days= Math.round(bd * totalDays / 100);
+              if (ctx.datasetIndex === 0) return ` Booked: ${bd}%  (${days} / ${totalDays} days)`;
+              return ` Available: ${100-bd}%  (${totalDays - days} / ${totalDays} days)`;
+            }
+          },
+          backgroundColor: 'rgba(0,40,34,0.92)',
+          titleFont: { family:"'DM Sans', sans-serif", size:12, weight:'600' },
+          bodyFont:  { family:"'DM Sans', sans-serif", size:12 },
+          padding: 11,
+          cornerRadius: 8,
+        },
+        datalabels: {
+          display: true,
+          formatter: (value, ctx) => {
+            if (ctx.datasetIndex === 0) {
+              // Show booked% on the booked bar (only if meaningful)
+              return value > 0 ? value + '%' : '';
+            } else {
+              // Show available% on available bar (only if meaningful)
+              return value > 0 ? value + '%' : '';
+            }
+          },
+          color: (ctx) => ctx.datasetIndex === 0 ? '#fff' : '#7A9490',
+          font: { family: "'DM Sans', sans-serif", size: 11, weight: '600' },
+          anchor: 'center',
+          align: 'center',
+          clamp: true,
+        }
+      },
+      scales: {
+        x: {
+          stacked: true, min: 0, max: 100,
+          ticks: { callback: v => v+'%', font:{family:"'DM Sans',sans-serif",size:11}, color:'#7A9490', stepSize:25 },
+          grid: { color:'rgba(216,228,226,0.5)' },
+          border: { display:false }
+        },
+        y: {
+          stacked: true,
+          ticks: { font:{family:"'DM Sans',sans-serif",size:11.5,weight:'500'}, color:'#1A2E2B' },
+          grid: { display:false },
+          border: { display:false }
+        }
+      }
+    }
+  });
+}
+
+/* ── DEPARTMENT-WISE BOOKINGS CHART ──────────────────────────────────────── */
+let deptChartInstance = null;
+
+function toggleDeptChart() {
+  const body  = document.getElementById('deptChartBody');
+  const arrow = document.getElementById('deptChartArrow');
+  body.classList.toggle('open');
+  arrow.classList.toggle('open');
+}
+
+function getDeptTotals() {
+  const totals = {};
+  Object.keys(allEvents).forEach(storedDate => {
+    const day = allEvents[storedDate];
+    Object.keys(day).forEach(vid => {
+      const v = day[vid];
+      const arr = Array.isArray(v)
+        ? v.filter(b => b && b.desc && b.desc.trim())
+        : (v && v.desc && v.desc.trim() ? [v] : []);
+      arr.forEach(b => {
+        const d = (b.dept && b.dept.trim()) ? b.dept.trim() : 'Unspecified';
+        totals[d] = (totals[d] || 0) + 1;
+      });
+    });
+  });
+  return totals;
+}
+
+function renderDeptChart() {
+  const totals     = getDeptTotals();
+  const entries     = Object.entries(totals).sort((a, b) => b[1] - a[1]);
+  const grandTotal  = entries.reduce((s, [, c]) => s + c, 0);
+
+  const sub = document.getElementById('deptChartSubtitle');
+  if (sub) {
+    sub.textContent = grandTotal
+      ? `${grandTotal} total booking${grandTotal === 1 ? '' : 's'} across ${entries.length} department${entries.length === 1 ? '' : 's'}`
+      : 'No bookings recorded yet';
+  }
+
+  const labels = entries.map(([d]) => d);
+  const counts = entries.map(([, c]) => c);
+  const pcts   = counts.map(c => grandTotal ? Math.round((c / grandTotal) * 1000) / 10 : 0);
+
+  const palette = ['#004D40','#00956D','#00C896','#C8A96E','#4A90A4','#B85C5C','#8E6FB8','#5D8C67','#D4A03C','#7A9EA8'];
+  const colors  = labels.map((_, i) => palette[i % palette.length]);
+
+  const canvas = document.getElementById('deptChart');
+  if (!canvas) return;
+  const rowH = 36;
+  const h = Math.max(labels.length, 1) * rowH + 50;
+  canvas.style.height = h + 'px';
+  canvas.height        = h;
+
+  if (deptChartInstance) { deptChartInstance.destroy(); deptChartInstance = null; }
+
+  Chart.register(ChartDataLabels);
+  deptChartInstance = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels: labels.length ? labels : ['No data'],
+      datasets: [{
+        label: 'Bookings',
+        data: counts.length ? counts : [0],
+        backgroundColor: colors.length ? colors : ['rgba(216,228,226,0.5)'],
+        borderColor: 'rgba(0,77,64,0.25)',
+        borderWidth: 1,
+        borderRadius: 4,
+        barPercentage: 0.68,
+        categoryPercentage: 0.85,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label(ctx) {
+              const idx = ctx.dataIndex;
+              if (!counts[idx]) return ' No bookings';
+              return ` ${counts[idx]} booking${counts[idx] === 1 ? '' : 's'}  ·  ${pcts[idx]}%`;
+            }
+          },
+          backgroundColor: 'rgba(0,40,34,0.92)',
+          titleFont: { family:"'DM Sans', sans-serif", size:12, weight:'600' },
+          bodyFont:  { family:"'DM Sans', sans-serif", size:12 },
+          padding: 11,
+          cornerRadius: 8,
+        },
+        datalabels: {
+          display: true,
+          anchor: 'end',
+          align: 'end',
+          clamp: true,
+          color: '#004D40',
+          font: { family:"'DM Sans', sans-serif", size:11, weight:'700' },
+          formatter: (value, ctx) => value > 0 ? `${value} (${pcts[ctx.dataIndex]}%)` : '',
+        }
+      },
+      scales: {
+        x: {
+          beginAtZero: true,
+          ticks: { precision:0, font:{family:"'DM Sans',sans-serif",size:11}, color:'#7A9490' },
+          grid: { color:'rgba(216,228,226,0.5)' },
+          border: { display:false }
+        },
+        y: {
+          ticks: { font:{family:"'DM Sans',sans-serif",size:11.5,weight:'500'}, color:'#1A2E2B' },
+          grid: { display:false },
+          border: { display:false }
+        }
+      },
+      onClick(evt, elements) {
+        if (elements.length > 0) {
+          const idx  = elements[0].index;
+          const dept = labels[idx];
+          if (dept && dept !== 'No data') openDeptDetail(dept);
+        }
+      },
+      onHover(evt, elements) {
+        evt.native.target.style.cursor = elements.length ? 'pointer' : 'default';
+      }
+    }
+  });
+}
+
+/* ── SHARE ─────────────────────────────────────────────────────────────────── */
+let shareImageDataUrl = null;
+const shareBuildingName = 'GITAM Hospitality – All Buildings';
+
+function openShareModal() {
+  document.getElementById('shareBuildingLbl').textContent =
+    'Shivaji Bhavan & Visvesvaraya Bhavan  ·  ' + dateLabel(currentDate);
+
+  document.getElementById('shareSpinner').style.display  = 'flex';
+  document.getElementById('shareContent').style.display  = 'none';
+  shareImageDataUrl = null;
+  document.getElementById('shareOv').classList.add('open');
+
+  // Build an off-screen capture wrapper with logo header + both tables
+  const wrapper = document.createElement('div');
+  wrapper.style.cssText = [
+    'position:fixed','top:-9999px','left:-9999px',
+    'width:900px','background:#ffffff',
+    'font-family:"DM Sans",sans-serif','padding:0'
+  ].join(';');
+
+  // --- Logo header band ---
+  const logoImg = document.querySelector('.gitam-logo');
+  const logoSrc = logoImg ? logoImg.src : '';
+  wrapper.innerHTML = `
+    <div style="background:linear-gradient(135deg,#004D40,#00695C);padding:16px 24px;display:flex;align-items:center;gap:14px;">
+      ${logoSrc ? `<img src="${logoSrc}" style="width:48px;height:48px;border-radius:50%;flex-shrink:0;" crossorigin="anonymous"/>` : ''}
+      <div>
+        <div style="font-family:'Playfair Display',Georgia,serif;font-size:18px;color:#fff;font-weight:700;line-height:1.2;">GITAM Hospitality</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.7);margin-top:2px;">Directorate of Hospitality – Event Index</div>
+      </div>
+      <div style="margin-left:auto;font-size:12px;color:rgba(255,255,255,.8);font-weight:500;">${dateLabel(currentDate)}</div>
+    </div>`;
+
+  // --- Clone each building section ---
+  buildings.forEach((b, idx) => {
+    const sec = document.getElementById('s-' + b.id);
+    if (!sec) return;
+    const clone = sec.cloneNode(true);
+
+    // Remove action buttons from clone
+    clone.querySelectorAll('.act-cell,.add-venue-btn,.share-btn,.sec-right button').forEach(el => el.remove());
+
+    // Inline critical styles
+    clone.style.cssText = 'margin:0;padding:16px 24px' + (idx > 0 ? ';border-top:1px solid #D8E4E2' : '');
+    clone.querySelectorAll('thead th').forEach(th => {
+      th.style.cssText = 'background:#004D40;color:#fff;padding:9px 12px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;text-align:left;';
+    });
+    clone.querySelectorAll('tbody tr.has-ev').forEach(tr => {
+      tr.style.background = '#E8F5F0';
+    });
+    clone.querySelectorAll('td').forEach(td => {
+      td.style.cssText = 'padding:9px 12px;font-size:12px;border-bottom:1px solid #EEF3F2;vertical-align:middle;';
+    });
+    clone.querySelectorAll('.tbl-wrap').forEach(tw => {
+      tw.style.cssText = 'border-radius:8px;overflow:hidden;border:1px solid #D8E4E2;';
+    });
+    clone.querySelectorAll('.sec-hdr').forEach(sh => {
+      sh.style.cssText = 'display:flex;align-items:center;gap:10px;padding:0 0 10px;margin-bottom:12px;border-bottom:2px solid #00695C;';
+    });
+    clone.querySelectorAll('.sec-title').forEach(st => {
+      st.style.cssText = "font-family:'Playfair Display',Georgia,serif;font-size:16px;font-weight:700;color:#004D40;";
+    });
+    clone.querySelectorAll('.sec-ico').forEach(si => {
+      si.style.cssText = 'width:30px;height:30px;background:#00695C;border-radius:7px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;';
+    });
+    clone.querySelectorAll('.sec-pct-badge').forEach(sp => {
+      sp.style.cssText = 'background:#E0F2F1;color:#00695C;border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700;';
+    });
+    clone.querySelectorAll('.sec-count').forEach(sc => {
+      sc.style.cssText = 'background:#00695C;color:#fff;border-radius:12px;padding:2px 10px;font-size:11px;font-weight:600;';
+    });
+    clone.querySelectorAll('.sd-on').forEach(s => { s.style.cssText='display:inline-block;width:8px;height:8px;border-radius:50%;background:#00C896;margin-right:6px;'; });
+    clone.querySelectorAll('.sd-off').forEach(s => { s.style.cssText='display:inline-block;width:8px;height:8px;border-radius:50%;background:#D8E4E2;margin-right:6px;'; });
+    clone.querySelectorAll('.badge').forEach(ba => {
+      ba.style.cssText = 'display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;text-transform:uppercase;';
+    });
+    clone.querySelectorAll('.bg-gen').forEach(b => { b.style.background='rgba(0,105,92,.12)';b.style.color='#004D40'; });
+    clone.querySelectorAll('.bg-stu').forEach(b => { b.style.background='rgba(200,151,42,.15)';b.style.color='#7A5A00'; });
+    clone.querySelectorAll('.bg-cus').forEach(b => { b.style.background='rgba(100,60,180,.12)';b.style.color='#5A3A9A'; });
+    clone.querySelectorAll('.bg-emp').forEach(b => { b.style.background='#D8E4E2';b.style.color='#7A9490'; });
+    clone.querySelectorAll('.ton').forEach(t => { t.style.color='#00695C';t.style.fontWeight='600';t.style.fontSize='12px'; });
+    clone.querySelectorAll('.toff').forEach(t => { t.style.color='#7A9490';t.style.fontSize='12px'; });
+    clone.querySelectorAll('.vpct').forEach(p => {
+      p.style.cssText='display:inline-block;min-width:40px;text-align:center;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:700;';
+    });
+    clone.querySelectorAll('.vpct-on').forEach(p => { p.style.background='rgba(0,200,150,.15)';p.style.color='#00875A'; });
+    clone.querySelectorAll('.vpct-off').forEach(p => { p.style.background='#D8E4E2';p.style.color='#7A9490'; });
+    // Fix rh hidden rows
+    clone.querySelectorAll('tr.rh').forEach(r => { r.style.display=''; });
+
+    wrapper.appendChild(clone);
+  });
+
+  // Footer strip
+  const foot = document.createElement('div');
+  foot.style.cssText = 'padding:10px 24px;background:#F4F7F6;border-top:1px solid #D8E4E2;font-size:10.5px;color:#7A9490;text-align:center;';
+  foot.textContent = 'GITAM Hospitality · Directorate of Hospitality · Event Index';
+  wrapper.appendChild(foot);
+
+  document.body.appendChild(wrapper);
+
+  setTimeout(() => {
+    html2canvas(wrapper, {
+      backgroundColor: '#ffffff',
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      allowTaint: true,
+    }).then(canvas => {
+      shareImageDataUrl = canvas.toDataURL('image/png');
+      document.getElementById('shareImgPreview').src = shareImageDataUrl;
+      document.getElementById('shareSpinner').style.display = 'none';
+      document.getElementById('shareContent').style.display = 'block';
+    }).catch(() => {
+      document.getElementById('shareSpinner').style.display = 'none';
+      alert('Could not generate image. Please try again.');
+      closeShareModal();
+    }).finally(() => {
+      document.body.removeChild(wrapper);
+    });
+  }, 100);
+}
+
+function closeShareModal() {
+  document.getElementById('shareOv').classList.remove('open');
+  shareImageDataUrl = null;
+}
+
+function dataURLtoBlob(dataUrl) {
+  const arr  = dataUrl.split(',');
+  const mime = arr[0].match(/:(.*?);/)[1];
+  const bstr = atob(arr[1]);
+  let n = bstr.length;
+  const u8 = new Uint8Array(n);
+  while (n--) u8[n] = bstr.charCodeAt(n);
+  return new Blob([u8], { type: mime });
+}
+
+async function shareViaWhatsApp() {
+  if (!shareImageDataUrl) return;
+  const fileName = `GITAM-Event-Index-${currentDate}.png`;
+  const blob = dataURLtoBlob(shareImageDataUrl);
+  const file = new File([blob], fileName, { type: 'image/png' });
+
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({
+        files: [file],
+        title: 'GITAM Hospitality – Event Details',
+        text: `GITAM Hospitality · All Buildings · ${dateLabel(currentDate)}`
+      });
+      return;
+    } catch(e) {
+      if (e.name === 'AbortError') return;
+    }
+  }
+
+  // Fallback: download + open WhatsApp
+  downloadShareImage();
+  const text = encodeURIComponent(
+    `GITAM Hospitality — Event Index\nShivaji Bhavan & Visvesvaraya Bhavan\n${dateLabel(currentDate)}\n\n(Image saved — please attach from your downloads)`
+  );
+  window.open(`https://wa.me/?text=${text}`, '_blank');
+}
+
+function downloadShareImage() {
+  if (!shareImageDataUrl) return;
+  const a = document.createElement('a');
+  a.href     = shareImageDataUrl;
+  a.download = `GITAM-Event-Index-${currentDate}.png`;
+  a.click();
+}
+
+/* ── BOOKING CALENDAR ─────────────────────────────────────────────────────── */
+function toggleCal() {
+  document.getElementById('calBody').classList.toggle('open');
+  document.getElementById('calArrow').classList.toggle('open');
+}
+function calShift(dir) {
+  const d = new Date(calViewDate + 'T00:00:00');
+  d.setMonth(d.getMonth() + dir);
+  calViewDate = d.toISOString().slice(0,10);
+  renderCalendar();
+}
+function renderCalendar() {
+  const ref    = new Date(calViewDate + 'T00:00:00');
+  const yr     = ref.getFullYear();
+  const mo     = ref.getMonth();
+  const today  = new Date().toISOString().slice(0,10);
+  const lbl    = ref.toLocaleDateString('en-IN', {month:'long', year:'numeric'});
+  const el     = document.getElementById('calMonthLbl');
+  if (el) el.textContent = lbl;
+
+  const firstDay = new Date(yr, mo, 1).getDay(); // 0=Sun
+  const daysInMo = new Date(yr, mo+1, 0).getDate();
+  const allV     = allVenues();
+
+  let html = ['Su','Mo','Tu','We','Th','Fr','Sa']
+    .map(d => `<div class="cal-day-hdr">${d}</div>`).join('');
+
+  // Leading blank cells
+  for (let i = 0; i < firstDay; i++) html += `<div class="cal-cell other-month"></div>`;
+
+  for (let day = 1; day <= daysInMo; day++) {
+    const ds    = `${yr}-${String(mo+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const cnt   = allV.filter(v => hasBooking(v.id, ds)).length;
+    const isTod = ds === today;
+    const isSel = ds === currentDate;
+    const dots  = cnt > 0
+      ? Array.from({length:Math.min(cnt,5)}, (_,i) => `<div class="cal-dot${i===4&&cnt>5?' dot-gold':''}"></div>`).join('')
+      : '';
+    const cls   = ['cal-cell', isTod?'today':'', isSel?'active-date':''].filter(Boolean).join(' ');
+    html += `
+      <div class="${cls}" onclick="calSelectDate('${ds}')">
+        <div class="cal-day-num">${day}</div>
+        <div class="cal-dots">${dots}</div>
+        ${cnt>0?`<div class="cal-count">${cnt} venue${cnt>1?'s':''}</div>`:''}
+      </div>`;
+  }
+
+  const grid = document.getElementById('calGrid');
+  if (grid) grid.innerHTML = html;
+}
+function calSelectDate(ds) {
+  currentDate = ds;
+  calViewDate = ds;
+  document.getElementById('datePicker').value = ds;
+  renderTables(); renderDash(); renderVenueChart(); renderDeptChart(); renderCalendar(); renderYearlyView(); applyFilters();
+}
+
+/* ── YEARLY VIEW ──────────────────────────────────────────────────────────── */
+function toggleYr() {
+  document.getElementById('yrBody').classList.toggle('open');
+  document.getElementById('yrArrow').classList.toggle('open');
+}
+function yrShift(dir) { yrViewYear += dir; renderYearlyView(); }
+function heatClass(n) {
+  if (n === 0)   return 'yr-cell-0';
+  if (n <= 3)    return 'yr-cell-1';
+  if (n <= 8)    return 'yr-cell-2';
+  if (n <= 15)   return 'yr-cell-3';
+  return 'yr-cell-hi';
+}
+function renderYearlyView() {
+  const lbl = document.getElementById('yrLabel');
+  if (lbl) lbl.textContent = String(yrViewYear);
+
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const allV   = allVenues();
+
+  // Count days per venue per month using date-range-aware check
+  const matrix = {};
+  allV.forEach(v => { matrix[v.id] = Array(12).fill(0); });
+
+  for (let mo = 0; mo < 12; mo++) {
+    const daysInMo = new Date(yrViewYear, mo + 1, 0).getDate();
+    for (let day = 1; day <= daysInMo; day++) {
+      const ds = `${yrViewYear}-${String(mo+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      allV.forEach(v => {
+        if (hasBooking(v.id, ds)) matrix[v.id][mo]++;
+      });
+    }
+  }
+
+  // Build table header
+  let hdr = `<th>Venue</th>` + MONTHS.map(m => `<th>${m}</th>`).join('') + `<th>Total</th>`;
+
+  // Build rows
+  const rows = allVenues().map(v => {
+    const counts = matrix[v.id];
+    const total  = counts.reduce((a,b)=>a+b,0);
+    const daysInYear = (yrViewYear % 4 === 0 && (yrViewYear % 100 !== 0 || yrViewYear % 400 === 0)) ? 366 : 365;
+    const pct = Math.round(total / daysInYear * 100);
+    const cells  = counts.map(c => `<td class="${heatClass(c)}">${c||'—'}</td>`).join('');
+    return `<tr><td>${esc(v.name)}</td>${cells}<td style="background:var(--teal3);color:var(--teal2);font-weight:700;">${total} <span style="font-size:10px;font-weight:500;color:var(--muted);">(${pct}%)</span></td></tr>`;
+  }).join('');
+
+  // Total row
+  const colTotals = Array(12).fill(0);
+  allV.forEach(v => matrix[v.id].forEach((c,i) => { colTotals[i] += c; }));
+  const grandTotal = colTotals.reduce((a,b)=>a+b,0);
+  const daysInYearTotal = (yrViewYear % 4 === 0 && (yrViewYear % 100 !== 0 || yrViewYear % 400 === 0)) ? 366 : 365;
+  const grandMax   = allV.length * daysInYearTotal;
+  const grandPct   = grandMax > 0 ? Math.round(grandTotal / grandMax * 100) : 0;
+  const totalRow   = colTotals.map(c => `<td>${c||'—'}</td>`).join('');
+
+  const wrap = document.getElementById('yrTableWrap');
+  if (wrap) wrap.innerHTML = `
+    <table class="yr-table">
+      <thead><tr>${hdr}</tr></thead>
+      <tbody>
+        ${rows}
+        <tr class="yr-total-row"><td>All Venues</td>${totalRow}<td>${grandTotal} <span style="font-size:10px;font-weight:500;opacity:0.75;">(${grandPct}%)</span></td></tr>
+      </tbody>
+    </table>`;
+}
+
+/* ── DATE ─────────────────────────────────────────────────────────────────── */
+document.getElementById('datePicker').addEventListener('change', function() {
+  currentDate = this.value;
+  render();
+});
+
+/* ── OVERLAY CLICK CLOSE ─────────────────────────────────────────────────── */
+/* ── DEPT DETAIL MODAL ───────────────────────────────────────────────────── */
+function openDeptDetail(deptName) {
+  document.getElementById('deptDetailTitle').textContent = deptName;
+  const list = document.getElementById('deptDetailList');
+
+  // Gather all bookings for this dept
+  const items = [];
+  const allV  = allVenues();
+  const venueMap = {};
+  allV.forEach(v => { venueMap[v.id] = v.name; });
+
+  Object.keys(allEvents).sort().forEach(storedDate => {
+    const day = allEvents[storedDate];
+    Object.keys(day).forEach(vid => {
+      const v   = day[vid];
+      const arr = Array.isArray(v)
+        ? v.filter(b => b && b.desc && b.desc.trim())
+        : (v && v.desc && v.desc.trim() ? [v] : []);
+      arr.forEach(b => {
+        const d = (b.dept && b.dept.trim()) ? b.dept.trim() : 'Unspecified';
+        if (d === deptName) {
+          items.push({ date: storedDate, venue: venueMap[vid] || `Venue #${vid}`, desc: b.desc, note: b.note||'', start: b.start||'', end: b.end||'' });
+        }
+      });
+    });
+  });
+
+  if (!items.length) {
+    list.innerHTML = `<div class="dept-detail-empty">No bookings found for this department.</div>`;
+  } else {
+    list.innerHTML = items.map(it => {
+      const dateLabel = new Date(it.date + 'T00:00:00').toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'});
+      const timeStr   = (it.start && it.end) ? `🕐 ${it.start} – ${it.end}` : it.start ? `🕐 From ${it.start}` : '';
+      return `
+        <div class="ddi-card">
+          <div class="ddi-top">
+            <span class="ddi-date">${dateLabel}</span>
+            <span class="ddi-venue">🏛 ${esc(it.venue)}</span>
+          </div>
+          <div class="ddi-desc">${esc(it.desc)}</div>
+          ${timeStr ? `<div class="ddi-time">${timeStr}</div>` : ''}
+          ${it.note ? `<div class="ddi-note">📝 ${esc(it.note)}</div>` : ''}
+        </div>`;
+    }).join('');
+  }
+
+  document.getElementById('deptDetailCount').textContent = items.length + ' booking' + (items.length === 1 ? '' : 's');
+  document.getElementById('deptDetailOv').classList.add('open');
+}
+function closeDeptDetailModal() { document.getElementById('deptDetailOv').classList.remove('open'); }
+
+['editOv','addVenueOv','shareOv','manageOv','deptDetailOv'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('click', e => {
+    if (e.target === e.currentTarget) { closeEditModal(); closeAddVenueModal(); closeShareModal(); closeManageModal(); closeDeptDetailModal(); }
+  });
+});
+
+/* ── INIT ─────────────────────────────────────────────────────────────────── */
+load().then(() => {
+  document.getElementById('datePicker').value = currentDate;
+  render();
+});
+</script>
+
+<!-- DEPT DETAIL MODAL -->
+<div class="ov" id="deptDetailOv">
+  <div class="modal" style="max-width:640px;">
+    <div class="mhdr">
+      <div>
+        <h3>🏢 <span id="deptDetailTitle"></span></h3>
+        <small id="deptDetailCount"></small>
+      </div>
+      <button class="mclose" onclick="closeDeptDetailModal()">✕</button>
+    </div>
+    <div class="mbody">
+      <div class="dept-detail-list" id="deptDetailList"></div>
+    </div>
+    <div class="mfoot">
+      <button class="btn btn-ghost" onclick="closeDeptDetailModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
