@@ -853,23 +853,31 @@ function renderTables() {
     const rows = b.venues.map(v => {
       const bks = getBookingsOnDate(v.id, currentDate);
       const has = bks.length > 0;
-      const first = has ? bks[0] : null;
-      const ts  = (first && first.start && first.end) ? `${fmt(first.start)} – ${fmt(first.end)}` : '';
-      const dr  = (first && first.fromDate && first.toDate && first.fromDate !== first.toDate)
-                  ? `<div style="font-size:10.5px;color:var(--muted);margin-top:2px;">📅 ${first.fromDate} → ${first.toDate}</div>`
-                  : (first && first.fromDate ? `<div style="font-size:10.5px;color:var(--muted);margin-top:2px;">📅 ${first.fromDate}</div>` : '');
       const sl  = serial++;
-      const extraBadge = bks.length > 1 ? `<span class="multi-badge">+${bks.length-1} more</span>` : '';
+      const bkRows = has ? bks.map((bk, bi) => {
+        const tsStr = (bk.start && bk.end) ? `${fmt(bk.start)} – ${fmt(bk.end)}` : (bk.start ? `From ${fmt(bk.start)}` : '—');
+        const drStr = (bk.fromDate && bk.toDate && bk.fromDate !== bk.toDate)
+          ? `<div style="font-size:10px;color:var(--muted);margin-top:2px;">📅 ${bk.fromDate} → ${bk.toDate}</div>`
+          : (bk.fromDate ? `<div style="font-size:10px;color:var(--muted);margin-top:2px;">📅 ${bk.fromDate}</div>` : '');
+        const sepStyle = bi > 0 ? 'border-top:1px dashed var(--border);margin-top:6px;padding-top:6px;' : '';
+        return { desc: bk.desc, note: bk.note, dept: bk.dept, tsStr, drStr, sepStyle };
+      }) : [];
       const descHtml = has
-        ? `${esc(first.desc)}${extraBadge}${first.note ? `<div style="font-size:11px;color:var(--muted);margin-top:2px;">📝 ${esc(first.note)}</div>` : ''}`
+        ? bkRows.map(r => `<div style="${r.sepStyle}"><span style="font-size:10px;color:var(--muted);font-weight:600;">•</span> ${esc(r.desc)}${r.note ? `<div style="font-size:11px;color:var(--muted);margin-top:1px;">📝 ${esc(r.note)}</div>` : ''}</div>`).join('')
         : '— No event scheduled —';
+      const deptHtml = has
+        ? bkRows.map(r => `<div style="${r.sepStyle}">${deptBadge(r.dept)}</div>`).join('')
+        : '<span class="badge bg-emp">—</span>';
+      const timeHtml = has
+        ? bkRows.map(r => `<div style="${r.sepStyle}" class="ton">${r.tsStr}${r.drStr}</div>`).join('')
+        : '<span class="toff">—</span>';
       return `
       <tr class="${has?'has-ev':''}" data-id="${v.id}" data-b="${b.id}" data-ev="${has}">
         <td class="sl">${sl}</td>
         <td class="vnm"><span class="sd ${has?'sd-on':'sd-off'}"></span>${esc(v.name)}</td>
         <td class="${has?'edesc':'eempty'}">${descHtml}</td>
-        <td>${has ? deptBadge(first.dept) : '<span class="badge bg-emp">—</span>'}</td>
-        <td class="${has?'ton':'toff'}">${ts||'—'}${dr}</td>
+        <td>${deptHtml}</td>
+        <td>${timeHtml}</td>
         <td><span class="vpct ${has?'vpct-on':'vpct-off'}">${has?(bks.length>1?`${bks.length} bookings`:'Booked'):'Free'}</span></td>
         <td>
           <div class="act-cell">
