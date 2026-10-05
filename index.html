@@ -285,6 +285,10 @@ td.sl{color:var(--muted);font-size:12px;font-weight:600;text-align:center;white-
 .legend-booked{background:var(--teal);}
 .legend-avail{background:#D8E4E2;}
 .chart-wrap{position:relative;width:100%;}
+.chart-scroll{max-height:420px;overflow-y:auto;overflow-x:hidden;padding-right:4px;}
+.chart-scroll::-webkit-scrollbar{width:6px;}
+.chart-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:6px;}
+
 
 /* ── SHARE BUTTON ── */
 .share-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 13px;border-radius:7px;border:1.5px solid #25D366;background:#f0fdf4;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;color:#15803d;cursor:pointer;transition:all .15s;white-space:nowrap;}
@@ -472,8 +476,10 @@ footer span{color:var(--teal);font-weight:600;}
         <div class="legend-item"><div class="legend-dot legend-avail"></div>Available Days</div>
         <div class="legend-item" style="margin-left:auto;font-size:11px;color:var(--muted);">Hover bar for day counts</div>
       </div>
-      <div class="chart-wrap">
-        <canvas id="venueChart"></canvas>
+      <div class="chart-scroll">
+        <div class="chart-wrap">
+          <canvas id="venueChart"></canvas>
+        </div>
       </div>
     </div>
   </div>
@@ -493,8 +499,10 @@ footer span{color:var(--teal);font-weight:600;}
   </div>
   <div class="chart-body open" id="deptChartBody">
     <div class="chart-body-inner">
-      <div class="chart-wrap">
-        <canvas id="deptChart"></canvas>
+      <div class="chart-scroll">
+        <div class="chart-wrap">
+          <canvas id="deptChart"></canvas>
+        </div>
       </div>
     </div>
   </div>
